@@ -89,33 +89,47 @@ public class CfEnv {
 
 	public CfService findServiceByName(String... spec) {
 		List<CfService> cfServices = findServicesByName(spec);
-		if (cfServices.size() > 0) {
-			// TODO - shoud throw an exception instead if there is more than one, I believe service
-			// name is always unique, but regex can allow for more matches.
+		if (cfServices.size() == 1) {
 			return cfServices.stream().findFirst().get();
 		}
-		String message = (spec == null) ? "null" : String.join(", ", spec);
-		throw new IllegalArgumentException("No service with name [" + message + "] was found");
+		String specMessage = (spec == null) ? "null" : String.join(", ", spec);
+		throwExceptionIfMultipleMatches(cfServices, specMessage, "name");
+		throw new IllegalArgumentException("No service with name [" + specMessage + "] was found.");
+	}
+
+	private void throwExceptionIfMultipleMatches(List<CfService> cfServices, String specMessage, String operation) {
+		if (cfServices.size() > 1) {
+			String[] names = cfServices.stream().map(CfService::getName).toArray(String[]::new);
+			String n = names.length > 1 ? "service names are [" : "service name is [";
+			throw new IllegalStateException("No unique service matching by " + operation  + " [" + specMessage  +
+					"] was found.  Matching " + n + String.join(", ", names) + "]");
+		}
 	}
 
 	public CfService findServiceByLabel(String... spec) {
+		List<CfService> cfServices = new ArrayList<>();
 		for (CfService cfService : this.cfServices) {
 			if (spec != null) {
 				for (String regex : spec) {
 					String name = cfService.getLabel();
 					if (name != null && name.length() > 0) {
 						if (name.matches(regex)) {
-							return cfService;
+							cfServices.add(cfService);
 						}
 					}
 				}
 			}
 		}
+		if (cfServices.size() == 1) {
+			return cfServices.stream().findFirst().get();
+		}
 		String message = (spec == null) ? "null" : String.join(", ", spec);
-		throw new IllegalArgumentException("No service with label [" + message + "] was found");
+		throwExceptionIfMultipleMatches(cfServices, message, "label");
+		throw new IllegalArgumentException("No service with label [" + message + "] was found.");
 	}
 
 	public CfService findServiceByTag(String... spec) {
+		List<CfService> cfServices = new ArrayList<>();
 		for (CfService cfService : this.cfServices) {
 			if (spec != null) {
 				for (String regex : spec) {
@@ -123,15 +137,19 @@ public class CfEnv {
 					for (String tag : tags) {
 						if (tag != null && tag.length() > 0) {
 							if (tag.matches(regex)) {
-								return cfService;
+								cfServices.add(cfService);
 							}
 						}
 					}
 				}
 			}
 		}
+		if (cfServices.size() == 1) {
+			return cfServices.stream().findFirst().get();
+		}
 		String message = (spec == null) ? "null" : String.join(", ", spec);
-		throw new IllegalArgumentException("No service with tag [" + message + "] was found");
+		throwExceptionIfMultipleMatches(cfServices, message, "tag");
+		throw new IllegalArgumentException("No service with tag [" + message + "] was found.");
 	}
 
 	public CfCredentials findCredentialsByName(String... spec) {

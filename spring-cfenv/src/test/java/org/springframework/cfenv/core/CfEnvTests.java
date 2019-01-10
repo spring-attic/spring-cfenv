@@ -296,10 +296,33 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	}
 
-	private CfEnv createTestCfEnv() {
+	@Test
+	public void testMultipleMatchingServices() {
+		CfEnv cfEnv = createTestCfEnv("vcap-services-multiple-mysql.json");
+		List<CfService> services = cfEnv.findAllServices();
+		assertThat(services.size()).isEqualTo(3);
+
+		assertThatThrownBy(() -> {
+			CfService service = cfEnv.findServiceByName("mysql.*");
+		}).isInstanceOf(IllegalStateException.class).hasMessageContaining(
+				"No unique service matching by name [mysql.*] was found.  Matching service names are [mysql, mysql2]");
+
+		assertThatThrownBy(() -> {
+			CfService service = cfEnv.findServiceByLabel("p-mysql");
+		}).isInstanceOf(IllegalStateException.class).hasMessageContaining(
+				"No unique service matching by label [p-mysql] was found.  Matching service names are [mysql, mysql2]");
+
+		assertThatThrownBy(() -> {
+			CfService service = cfEnv.findServiceByTag("mysql");
+		}).isInstanceOf(IllegalStateException.class).hasMessageContaining(
+				"No unique service matching by tag [mysql] was found.  Matching service names are [mysql, mysql2]");
+
+	}
+
+	private CfEnv createTestCfEnv(String fileName) {
 		File file = null;
 		try {
-			file = ResourceUtils.getFile("classpath:vcap-services.json");
+			file = ResourceUtils.getFile("classpath:" + fileName);
 
 			String fileContents = new String(Files.readAllBytes(file.toPath()));
 			when(mockEnvironmentAccessor.getenv(CfEnv.VCAP_SERVICES))
@@ -309,6 +332,10 @@ public class CfEnvTests extends AbstractTestSupport {
 		catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
+	}
+
+	private CfEnv createTestCfEnv() {
+		return createTestCfEnv("vcap-services.json");
 	}
 
 }
