@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import org.junit.Test;
 
 import org.springframework.cfenv.core.CfEnv;
-import org.springframework.cfenv.util.AbstractTestSupport;
 import org.springframework.util.ResourceUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,14 +35,14 @@ public class CfEnvJdbcTests extends AbstractTestSupport {
 
 	@Test
 	public void testCfService() {
-		CfEnv cfEnv = createTestCfEnv();
-		// assertThat(cfEnv.findJdbcUrl()).isEqualTo(mysqlJdbcUrl);
-		assertThat(cfEnv.findJdbcUrlByName("mysql")).isEqualTo(mysqlJdbcUrl);
-		// assertThat(cfEnv.findJdbcUrlByName("blah")).isNull();
-		// assertThat(cfEnv.findJdbcUrlByName((String[])null)).isNull();
+		CfEnvJdbc cfEnvJdbc = createTestCfEnvJdbc();
+		assertThat(cfEnvJdbc.findJdbcUrl()).isEqualTo(mysqlJdbcUrl);
+		assertThat(cfEnvJdbc.findJdbcUrlByName("mysql")).isEqualTo(mysqlJdbcUrl);
+		assertThat(cfEnvJdbc.findJdbcUrlByName("blah")).isNull();
+		assertThat(cfEnvJdbc.findJdbcUrlByName((String[]) null)).isNull();
 	}
 
-	private CfEnv createTestCfEnv() {
+	private CfEnvJdbc createTestCfEnvJdbc() {
 		File file = null;
 		try {
 			file = ResourceUtils.getFile("classpath:vcap-services-jdbc.json");
@@ -51,7 +50,7 @@ public class CfEnvJdbcTests extends AbstractTestSupport {
 			String fileContents = new String(Files.readAllBytes(file.toPath()));
 			when(mockEnvironmentAccessor.getenv(CfEnv.VCAP_SERVICES))
 					.thenReturn(fileContents);
-			return new CfEnv(mockEnvironmentAccessor);
+			return new CfEnvJdbc(mockEnvironmentAccessor);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

@@ -99,38 +99,61 @@ cfService = cfEnv.findServiceByLabel("p-redis");
 cfService = cfEnv.findServiceByLabel(".*-redis");
 ----
 
-There is additional support for getting the JDBC URL.  The top level method `findJdbcUrl` will heuristically look at all services for known tags, labels and names of common database services to create the URL.
+=== JDBC Support
+
+There is additional support for getting the JDBC URL contained in the module `spring-cfenv-jdbc`.
+ The entry point to the API is the class `CfEnvJdbc` which is a subclass of `CfEnv` and adds a few methods.
+ The method `findJdbcUrl` will heuristically look at all services for known tags, labels and names of common database services to create the URL.
 
 [source,java]
 ----
-String jdbcUrl = cfEnv.findJdbcUrl();
+CfEnvJdbc cfEnvJdbc = new CfEnvJdbc()
+String jdbcUrl = cfEnvJdbc.findJdbcUrl();
 ----
 
 TODO: If there is more than one database, an exception will be thrown and you should use the `findJdbcUrlByName` method to locate a unique database service.
 
 [source,java]
 ----
-String jdbcUrl1 = cfEnv.findJdbcUrlByName('mysqlA');
-String jdbcUrl2 = cfEnv.findJdbcUrlByName('mysqlB');
+String jdbcUrl1 = cfEnvJdbc.findJdbcUrlByName('mysqlA');
+String jdbcUrl2 = cfEnvJdbc.findJdbcUrlByName('mysqlB');
 ----
 
 === Use with Spring
 
 If you register a the `CfEnv` class as a bean, then you can use the Spring Expression Language to set properties.
-For example in a properties file.
+
+[source,java]
+----
+@Bean
+public CfEnvJdbc cfEnvJdbc() {
+  return new CfEnvJdbc();
+}
+----
+
+Then in a property file imported by Spring, refer to the CfEnvJdbc bean using the following syntax.
 
 [source]
 ----
-mydatasource=#{cfEnv.findJdbcUrl()}
+mydatasource=#{ cfEnvJdbc.findJdbcUrl() }
 ----
 
-Or say for cassandra
+Or say for cassandra, you can use the `CfEnv` class registered as a bean.
+
+[source,java]
+----
+@Bean
+public CfEnv cfEnv() {
+  return new CfEnv();
+}
+
+----
 [source]
 ----
-cassandra.contact-points=#${cfEnv.findCredentialsByTag('cassandra').get('node_ips')}
-cassandra.username#${cfEnv.findCredentialsByTag('cassandra').getUserName()}
-cassandra.password#${cfEnv.findCredentialsByTag('cassandra').getPassword()}
-cassandra.port#${cfEnv.findCredentialsByTag('cassandra').get('cqlsh_port')}
+cassandra.contact-points=#{ cfEnv.findCredentialsByTag('cassandra').get('node_ips') }
+cassandra.username=#{ cfEnv.findCredentialsByTag('cassandra').getUserName() }
+cassandra.password=#{ cfEnv.findCredentialsByTag('cassandra').getPassword() }
+cassandra.port=#{ cfEnv.findCredentialsByTag('cassandra').get('cqlsh_port') }
 ----
 
 === Using Spring Boot

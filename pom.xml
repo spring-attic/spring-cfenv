@@ -50,6 +50,7 @@
 
     <modules>
       <module>spring-cfenv</module>
+      <module>spring-cfenv-jdbc</module>      
       <module>spring-cfenv-boot</module>
         <!--
       <module>spring-cfenv-docs</module>  -->

@@ -39,8 +39,11 @@ public class AbstractJdbcTests {
 	protected static final String hostname = "10.20.30.40";
 
 	protected static final int port = 1234;
+
 	protected static final String password = "mypass";
+
 	protected static String username = "myuser";
+
 	private static ObjectMapper objectMapper = new ObjectMapper();
 
 	@Mock

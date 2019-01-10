@@ -22,7 +22,6 @@ import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.springframework.cfenv.jdbc.CfJdbcUrlCreator;
 import org.springframework.cfenv.util.EnvironmentAccessor;
 
 /**
@@ -148,16 +147,6 @@ public class CfEnv {
 	public CfCredentials findCredentialsByTag(String... spec) {
 		CfService cfService = findServiceByTag(spec);
 		return cfService.getCredentials();
-	}
-
-	public String findJdbcUrl() {
-		CfJdbcUrlCreator cfJdbcEnv = new CfJdbcUrlCreator(this.findAllServices());
-		return cfJdbcEnv.getJdbcUrl();
-	}
-
-	public String findJdbcUrlByName(String... spec) {
-		CfJdbcUrlCreator cfJdbcEnv = new CfJdbcUrlCreator(this.findServicesByName(spec));
-		return cfJdbcEnv.getJdbcUrl();
 	}
 
 	/**

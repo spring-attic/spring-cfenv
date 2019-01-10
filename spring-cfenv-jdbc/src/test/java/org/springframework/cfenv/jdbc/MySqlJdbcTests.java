@@ -17,8 +17,6 @@ package org.springframework.cfenv.jdbc;
 
 import org.junit.Test;
 
-import org.springframework.cfenv.core.CfEnv;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.cfenv.jdbc.MySqlJdbcUrlCreator.MYSQL_SCHEME;
@@ -37,9 +35,9 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithLabelNoTags("mysql-1", hostname, port, username, password, name1),
 						getMysqlServicePayloadWithLabelNoTags("mysql-2", hostname, port, username, password, name2)));
 
-		CfEnv cfEnv = new CfEnv(mockEnvironment);
-		String jdbcUrlMysql1 = cfEnv.findJdbcUrlByName("mysql-1");
-		String jdbcUrlMysql2 = cfEnv.findJdbcUrlByName("mysql-2");
+		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc(mockEnvironment);
+		String jdbcUrlMysql1 = cfEnvJdbc.findJdbcUrlByName("mysql-1");
+		String jdbcUrlMysql2 = cfEnvJdbc.findJdbcUrlByName("mysql-2");
 
 		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name1)).isEqualTo(jdbcUrlMysql1);
 		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name2)).isEqualTo(jdbcUrlMysql2);

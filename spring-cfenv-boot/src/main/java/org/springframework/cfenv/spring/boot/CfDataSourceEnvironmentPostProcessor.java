@@ -25,7 +25,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.config.ConfigFileApplicationListener;
 import org.springframework.boot.env.EnvironmentPostProcessor;
-import org.springframework.cfenv.core.CfEnv;
+import org.springframework.cfenv.jdbc.CfEnvJdbc;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.CommandLinePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -60,9 +60,9 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
-			CfEnv cfEnv = new CfEnv();
+			CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
 			// TODO detect if more than one db service is bound
-			String jdbcUrl = cfEnv.findJdbcUrl();
+			String jdbcUrl = cfEnvJdbc.findJdbcUrl();
 			Map<String, Object> properties = new HashMap<>();
 			System.out.println("Setting spring.datasource.url to " + jdbcUrl);
 			logger.info("Setting spring.datasource.url to " + jdbcUrl);
