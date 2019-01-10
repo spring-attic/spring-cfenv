@@ -119,25 +119,34 @@ For example in a properties file
 
 [source]
 ----
-mydatasource=#{#cfEnv.findJdbcUrl()}
+mydatasource=#{cfEnv.findJdbcUrl()}
+----
+
+Or say for cassandra
+[source]
+----
+cassandra.contact-points=#${cfEnv.findCredentialsByTag('cassandra').get('node_ips')}
+cassandra.username#${cfEnv.findCredentialsByTag('cassandra').getUserName()}
+cassandra.password#${cfEnv.findCredentialsByTag('cassandra').getPassword()}
+cassandra.port#${cfEnv.findCredentialsByTag('cassandra').get('cqlsh_port')}
 ----
 
 === Using Spring Boot
 
-The module spring-cfenv-boot provides `EnvironmentPostProcessor`s that set well known Boot properties so that Boot's autoconfiguration can kick in.
+The module `spring-cfenv-boot` provides `EnvironmentPostProcessor`s that set well known Boot properties so that Boot's autoconfiguration can kick in.
 For example, the `CfDataSourceEnvironmentPostProcessor` sets the Boot property `spring.datasource.url`.
 Just add a dependency on `spring-cfenv-boot`
 
 === Pushing you application to Cloud Foundry
 
-You should disable the java buildpacks' autoreconfiguration so that you always delegate to boot
+You must disable the java buildpack's auto-reconfiguration so that you always delegate to Boot to create beans.
 
 [source]
 ----
 `cf set-env <APP> JBP_CONFIG_SPRING_AUTO_RECONFIGURATION '{enabled: false}'`
 ----
 
-Since the autoreconfiguration also set the cloud profile, you will have to do that explicitly
+Since the auto-reconfiguration also set the cloud profile, you will have to do that explicitly
 
 [source]
 ----
