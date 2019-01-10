@@ -26,7 +26,9 @@ import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.config.ConfigFileApplicationListener;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
-import org.springframework.cfenv.jdbc.CfEnvJdbc;
+import org.springframework.cfenv.core.CfCredentials;
+import org.springframework.cfenv.core.CfEnv;
+import org.springframework.cfenv.core.CfService;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
@@ -38,14 +40,20 @@ import org.springframework.core.env.MutablePropertySources;
 /**
  * @author Mark Pollack
  */
-public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
+public class CfSpringCloudConfigClientEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
 		ApplicationListener<ApplicationEvent> {
+
+	public static final String SPRING_CLOUD_CONFIG_URI = "spring.cloud.config.uri";
+	public static final String SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID = "spring.cloud.config.client.oauth2.clientId";
+	public static final String SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET = "spring.cloud.config.client.oauth2.clientSecret";
+	public static final String SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI = "spring.cloud.config.client.oauth2.accessTokenUri";
+	private static final String CONFIG_SERVER_SERVICE_TAG_NAME = "configuration";
+	private static final String PROPERTY_SOURCE_NAME = "cfSpringCloudConfigClientEnvironmentPostProcessor";
 
 	private Log logger = new DeferredLog();
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private int order = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
-
 
 	@Override
 	public int getOrder() {
@@ -57,39 +65,50 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 	}
 
 	@Override
-	public void postProcessEnvironment(ConfigurableEnvironment environment,
-			SpringApplication application) {
+	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
-			CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
-			String jdbcUrl;
+
+			CfEnv cfEnv = new CfEnv();
+			CfService cfService;
+			Map<String, Object> properties = new LinkedHashMap<>();
 			try {
-				jdbcUrl = cfEnvJdbc.findJdbcUrl();
+				cfService = cfEnv.findServiceByTag(CONFIG_SERVER_SERVICE_TAG_NAME);
 			}
 			catch (Exception e) {
-				System.out.println("println: Skipping execution of CfDataSourceEnvironmentPostProcessor.");
-				// TODO change to debug or put CfDataSourceEnvironmentPostProcessor in own java artifact?
+				System.out.println("Skipping execution of CfDataSourceEnvironmentPostProcessor.");
 				logger.info("Skipping execution of CfDataSourceEnvironmentPostProcessor.");
 				return;
 			}
-			Map<String, Object> properties = new LinkedHashMap<>();
-			System.out.println("println: Setting spring.datasource.url property from bound service.");
-			logger.info("Setting spring.datasource.url property from bound service.");
-			properties.put("spring.datasource.url", jdbcUrl);
+
+			CfCredentials cfCredentials = cfService.getCredentials();
+			String uri = cfCredentials.getUri();
+			String clientId = cfCredentials.getString("client_id");
+			String clientSecret = cfCredentials.getString("client_secret");
+			String accessTokenUri = cfCredentials.getString("access_token_uri");
+
+			properties.put(SPRING_CLOUD_CONFIG_URI, uri);
+			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID, clientId);
+			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET, clientSecret);
+			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI, accessTokenUri);
+			System.out.println("Setting spring.cloud.config.client properties from bound service.");
+			logger.info("Setting spring.cloud.config.client properties from bound service.");
+
 			MutablePropertySources propertySources = environment.getPropertySources();
 			if (propertySources.contains(
 					CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME)) {
 				propertySources.addAfter(
 						CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME,
-						new MapPropertySource("cfenvjdbc", properties));
+						new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
 			}
 			else {
 				propertySources
-						.addFirst(new MapPropertySource("cfenvjdbc", properties));
+						.addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
 			}
 		}
 		else {
-			System.out.println("println: Not setting spring.datasource.url, not in Cloud Foundry Environment");
-			logger.debug("Not setting spring.datasource.url, not in Cloud Foundry Environment");
+			System.out.println("Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
+			logger.debug("Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
 		}
 	}
 
@@ -97,4 +116,5 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 	public void onApplicationEvent(ApplicationEvent event) {
 		this.logger = DeferredLog.replay(this.logger, LogFactory.getLog(getClass()));
 	}
+
 }

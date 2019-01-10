@@ -35,10 +35,12 @@ public class CfEnv {
 
 	public final EnvironmentAccessor environmentAccessor;
 
-	/* TODO consider supporting multiple json libraries? */
+	/* TODO  pick small json parser and package as a shadowed jar*/
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	private List<CfService> cfServices = new ArrayList<>();
+
+	//TODO consider JVM singleon access to avoid excessive creation when using spring boot EnvironmentPostProcessors
 
 	public CfEnv() {
 		this(new EnvironmentAccessor());
