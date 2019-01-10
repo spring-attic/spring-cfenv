@@ -16,14 +16,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
 
-	<!-- Used for testing in cfenv module -->
-	<!-- Note cfenv-spring-boot module uses boot parent pom -->
-	<spring.boot.version>2.1.1.RELEASE</spring.boot.version>
+	    <!-- Used for testing in cfenv module -->
+	    <!-- Note spring-cfenv-boot module uses boot parent pom -->
+	    <spring.boot.version>2.1.1.RELEASE</spring.boot.version>
 
-	<jackson.version>2.9.7</jackson.version>
-	
-	<!-- build deps -->
+        <!-- TODO shade -->
+	    <jackson.version>2.9.7</jackson.version>
+
+        <!-- Plugins -->
+        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
         <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
         <surefire-maven-plugin.version>2.20</surefire-maven-plugin.version>
         <sonar-maven-plugin.version>3.0.2</sonar-maven-plugin.version>
@@ -47,7 +51,8 @@
     <modules>
       <module>spring-cfenv</module>
       <module>spring-cfenv-boot</module>
-      <module>spring-cfenv-docs</module>
+        <!--
+      <module>spring-cfenv-docs</module>  -->
     </modules>
     <dependencyManagement>
       <dependencies>
@@ -57,17 +62,20 @@
 	  <artifactId>cfenv</artifactId>
 	  <version>1.0.0.BUILD-SNAPSHOT</version>
 	</dependency>
-	<!--
-	<dependency>
-  	  <groupId>org.springframework.cfenv.spring.boot</groupId>
-	  <artifactId>cfenv-spring-boot</artifactId>
-	  <version>1.0.0.BUILD-SNAPSHOT</version>
-	  </dependency>
-	  -->
       </dependencies>
     </dependencyManagement>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <compilerArgument>-parameters</compilerArgument>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

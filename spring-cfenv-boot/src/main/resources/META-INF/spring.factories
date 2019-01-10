@@ -1,0 +1,4 @@
+# Environment Post Processors
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  org.springframework.cfenv.spring.boot.CfDataSourceEnvironmentPostProcessor
+
