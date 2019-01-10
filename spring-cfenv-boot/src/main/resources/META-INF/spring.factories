@@ -1,5 +1,5 @@
 # Environment Post Processors
 org.springframework.boot.env.EnvironmentPostProcessor=\
   org.springframework.cfenv.spring.boot.CfDataSourceEnvironmentPostProcessor,\
-  org.springframework.cfenv.spring.boot.CfSpringCloudConfigClientEnvironmentPostProcessor
-
+  org.springframework.cfenv.spring.boot.CfSpringCloudConfigClientEnvironmentPostProcessor,\
+  org.springframework.cfenv.spring.boot.CfSingleSignOnEnvironmentPostProcessor

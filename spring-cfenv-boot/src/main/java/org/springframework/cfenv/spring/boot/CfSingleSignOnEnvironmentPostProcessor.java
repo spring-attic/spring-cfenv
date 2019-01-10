@@ -40,17 +40,12 @@ import org.springframework.core.env.MutablePropertySources;
 /**
  * @author Mark Pollack
  */
-public class CfSpringCloudConfigClientEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
+public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
 		ApplicationListener<ApplicationEvent> {
 
-	public static final String SPRING_CLOUD_CONFIG_URI = "spring.cloud.config.uri";
-	public static final String SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID = "spring.cloud.config.client.oauth2.clientId";
-	public static final String SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET = "spring.cloud.config.client.oauth2.clientSecret";
-	public static final String SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI = "spring.cloud.config.client.oauth2.accessTokenUri";
+	private static final String PIVOTAL_SSO_LABEL = "p-identity";
 
-	private static final String PROPERTY_SOURCE_NAME = "cfSpringCloudConfigClientEnvironmentPostProcessor";
-
-	private static final String CONFIG_SERVER_SERVICE_TAG_NAME = "configuration";
+	private static final String PROPERTY_SOURCE_NAME = "cfSingleSignOnEnvironmentPostProcessor";
 
 	private Log logger = new DeferredLog();
 
@@ -75,24 +70,28 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 			CfService cfService;
 			Map<String, Object> properties = new LinkedHashMap<>();
 			try {
-				cfService = cfEnv.findServiceByTag(CONFIG_SERVER_SERVICE_TAG_NAME);
+				cfService = cfEnv.findServiceByLabel(PIVOTAL_SSO_LABEL);
 			}
 			catch (Exception e) {
-				System.out.println("Skipping execution of CfDataSourceEnvironmentPostProcessor.");
-				logger.info("Skipping execution of CfDataSourceEnvironmentPostProcessor.");
+				System.out.println("println: Skipping execution of CfSingleSignOnEnvironmentPostProcessor.");
+				logger.info("Skipping execution of CfSingleSignOnEnvironmentPostProcessor.");
 				return;
 			}
 
 			CfCredentials cfCredentials = cfService.getCredentials();
-			String uri = cfCredentials.getUri();
 			String clientId = cfCredentials.getString("client_id");
 			String clientSecret = cfCredentials.getString("client_secret");
-			String accessTokenUri = cfCredentials.getString("access_token_uri");
+			String authDomain = cfCredentials.getString("auth_domain");
 
-			properties.put(SPRING_CLOUD_CONFIG_URI, uri);
-			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID, clientId);
-			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET, clientSecret);
-			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI, accessTokenUri);
+			properties.put("security.oauth2.client.clientId", clientId);
+			properties.put("security.oauth2.client.clientSecret", clientSecret);
+			properties.put("security.oauth2.client.accessTokenUri", authDomain + "/oauth/token");
+			properties.put("security.oauth2.client.userAuthorizationUri", authDomain + "/oauth/authorize");
+			properties.put("ssoServiceUrl", authDomain);
+			properties.put("security.oauth2.resource.userInfoUri", authDomain + "/userinfo");
+			properties.put("security.oauth2.resource.tokenInfoUri", authDomain + "/check_token");
+			properties.put("security.oauth2.resource.jwk.key-set-uri", authDomain + "/token_keys");
+
 			System.out.println("Setting spring.cloud.config.client properties from bound service.");
 			logger.info("Setting spring.cloud.config.client properties from bound service.");
 
@@ -109,8 +108,8 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 			}
 		}
 		else {
-			System.out.println("Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
-			logger.debug("Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
+			System.out.println("Not setting security.oauth2.client properties, not in Cloud Foundry Environment");
+			logger.debug("Not setting security.oauth2.client properties, not in Cloud Foundry Environment");
 		}
 	}
 
