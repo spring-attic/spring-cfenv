@@ -35,7 +35,7 @@ public class MySqlJdbcUrlCreator extends AbstractJdbcUrlCreator {
 		// Match tags
 		if (jdbcUrlMatchesScheme(cfService, MYSQL_SCHEME) ||
 				cfService.existsByTagIgnoreCase(MYSQL_TAG) ||
-				cfService.getLabel().startsWith(MYSQL_LABEL) ||
+				cfService.existsByLabelStartsWith(MYSQL_LABEL) ||
 				cfService.existsByUriSchemeStartsWith(MYSQL_SCHEME) ||
 				cfService.existsByCredentialsContainsUriField(MYSQL_SCHEME)) {
 			return true;

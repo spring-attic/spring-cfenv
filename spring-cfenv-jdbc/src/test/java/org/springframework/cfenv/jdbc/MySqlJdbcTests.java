@@ -17,6 +17,8 @@ package org.springframework.cfenv.jdbc;
 
 import org.junit.Test;
 
+import org.springframework.cfenv.util.UriInfo;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.cfenv.jdbc.MySqlJdbcUrlCreator.MYSQL_SCHEME;
@@ -27,6 +29,19 @@ import static org.springframework.cfenv.jdbc.MySqlJdbcUrlCreator.MYSQL_SCHEME;
 public class MySqlJdbcTests extends AbstractJdbcTests {
 
 	@Test
+	public void mysqlServiceCreation() {
+		String name1 = "database-1";
+		String name2 = "database-2";
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayload("mysql-1", hostname, port, username, password, name1),
+						getMysqlServicePayload("mysql-2", hostname, port, username, password, name2)));
+
+		assertJdbcUrls(name1, name2);
+
+	}
+
+	@Test
 	public void mysqlServiceCreationWithLabelNoTags() {
 		String name1 = "database-1";
 		String name2 = "database-2";
@@ -35,6 +50,113 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithLabelNoTags("mysql-1", hostname, port, username, password, name1),
 						getMysqlServicePayloadWithLabelNoTags("mysql-2", hostname, port, username, password, name2)));
 
+		assertJdbcUrls(name1, name2);
+
+	}
+
+	@Test
+	public void mysqlServiceCreationNoLabelNoTags() {
+		String name1 = "database-1";
+		String name2 = "database-2";
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayloadNoLabelNoTags("mysql-1", hostname, port, username, password, name1),
+						getMysqlServicePayloadNoLabelNoTags("mysql-2", hostname, port, username, password, name2)));
+
+		assertJdbcUrls(name1, name2);
+
+	}
+
+	@Test
+	public void mysqlServiceCreationNoLabelNoTagsWithSpecialChars() {
+		String name = "database";
+		String userWithSpecialChars = "u%u:u+";
+		String passwordWithSpecialChars = "p%p:p+";
+
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayloadNoLabelNoTags("mysql", hostname, port, userWithSpecialChars,
+								passwordWithSpecialChars, name)));
+
+		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc(mockEnvironment);
+		String jdbcUrlMysql = cfEnvJdbc.findJdbcUrlByName("mysql");
+
+		assertThat(getExpectedMysqlJdbcUrl(hostname, port, name, userWithSpecialChars, passwordWithSpecialChars))
+				.isEqualTo(jdbcUrlMysql);
+	}
+
+	@Test
+	public void mysqlServiceCreationWithLabelNoUri() {
+		String name1 = "database-1";
+		String name2 = "database-2";
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayloadWithLabelNoUri("mysql-1", hostname, port, username, password, name1),
+						getMysqlServicePayloadWithLabelNoUri("mysql-2", hostname, port, username, password, name2)));
+
+		assertJdbcUrls(name1, name2);
+	}
+
+	@Test
+	public void mysqlServiceCreationWithJdbcUrl() {
+		String name1 = "database-1";
+		String name2 = "database-2";
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayloadWithJdbcUrl("mysql-1", hostname, port, username, password, name1),
+						getMysqlServicePayloadWithJdbcUrl("mysql-2", hostname, port, username, password, name2)));
+
+		assertJdbcUrls(name1, name2);
+	}
+
+	@Test
+	public void mysqlServiceCreationWithJdbcUrlAndSpecialChars() {
+		String userWithSpecialChars = "u%u:u+";
+		String passwordWithSpecialChars = "p%p:p+";
+		String name = "database";
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayloadWithJdbcUrl("mysql", hostname, port, userWithSpecialChars,
+								passwordWithSpecialChars, name)));
+
+		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc(mockEnvironment);
+		String jdbcUrlMysql = cfEnvJdbc.findJdbcUrlByName("mysql");
+
+		assertThat(getExpectedMysqlJdbcUrl(hostname, port, name, userWithSpecialChars, passwordWithSpecialChars))
+				.isEqualTo(jdbcUrlMysql);
+	}
+
+	@Test
+	public void mysqlServiceCreationWithJdbcUrlOnly() {
+		String name1 = "database-1";
+		String name2 = "database-2";
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayloadWithJdbcUrlOnly("mysql-1", hostname, port, username, password, name1),
+						getMysqlServicePayloadWithJdbcUrlOnly("mysql-2", hostname, port, username, password, name2)));
+
+		assertJdbcUrls(name1, name2);
+	}
+
+	@Test
+	public void mysqlServiceCreationWithJdbcUrlOnlyWithSpecialChars() {
+		String name = "database";
+		String userWithSpecialChars = "u%u:u+";
+		String passwordWithSpecialChars = "p%p:p+";
+		when(mockEnvironment.getenv("VCAP_SERVICES"))
+				.thenReturn(getServicesPayload(
+						getMysqlServicePayloadWithJdbcUrlOnly("mysql", hostname, port, userWithSpecialChars,
+								passwordWithSpecialChars, name)));
+
+		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc(mockEnvironment);
+		String jdbcUrlMysql = cfEnvJdbc.findJdbcUrlByName("mysql");
+		assertThat(getExpectedMysqlJdbcUrl(hostname, port, name, userWithSpecialChars, passwordWithSpecialChars))
+				.isEqualTo(jdbcUrlMysql);
+	}
+
+	// Utility methods
+
+	private void assertJdbcUrls(String name1, String name2) {
 		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc(mockEnvironment);
 		String jdbcUrlMysql1 = cfEnvJdbc.findJdbcUrlByName("mysql-1");
 		String jdbcUrlMysql2 = cfEnvJdbc.findJdbcUrlByName("mysql-2");
@@ -43,10 +165,53 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name2)).isEqualTo(jdbcUrlMysql2);
 	}
 
+	private String getExpectedMysqlJdbcUrl(String hostname, int port, String name, String user,
+			String password) {
+		return String.format("jdbc:mysql://%s:%d/%s?user=%s&password=%s", hostname, port,
+				name, UriInfo.urlEncode(user), UriInfo.urlEncode(password));
+	}
+
+	private String getMysqlServicePayload(String serviceName,
+			String hostname, int port,
+			String user, String password, String name) {
+		return getRelationalPayload("test-mysql-info.json", serviceName,
+				hostname, port, user, password, name);
+	}
+
+
 	private String getMysqlServicePayloadWithLabelNoTags(String serviceName,
 			String hostname, int port,
 			String user, String password, String name) {
 		return getRelationalPayload("test-mysql-info-with-label-no-tags.json", serviceName,
 				hostname, port, user, password, name);
 	}
+
+	private String getMysqlServicePayloadNoLabelNoTags(String serviceName,
+			String hostname, int port,
+			String user, String password, String name) {
+		return getRelationalPayload("test-mysql-info-no-label-no-tags.json", serviceName,
+				hostname, port, user, password, name);
+	}
+
+	private String getMysqlServicePayloadWithLabelNoUri(String serviceName,
+			String hostname, int port,
+			String user, String password, String name) {
+		return getRelationalPayload("test-mysql-info-with-label-no-uri.json", serviceName,
+				hostname, port, user, password, name);
+	}
+
+	private String getMysqlServicePayloadWithJdbcUrl(String serviceName,
+			String hostname, int port,
+			String user, String password, String name) {
+		return getRelationalPayload("test-mysql-info-jdbc-url.json", serviceName,
+				hostname, port, user, password, name);
+	}
+
+	private String getMysqlServicePayloadWithJdbcUrlOnly(String serviceName,
+			String hostname, int port,
+			String user, String password, String name) {
+		return getRelationalPayload("test-mysql-info-jdbc-url-only.json", serviceName,
+				hostname, port, user, password, name);
+	}
+
 }

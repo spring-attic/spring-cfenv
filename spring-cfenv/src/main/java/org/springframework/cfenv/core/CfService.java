@@ -135,4 +135,12 @@ public class CfService {
 		}
 		return false;
 	}
+
+	public boolean existsByLabelStartsWith(String label) {
+		String cfLabel = this.getLabel();
+		if (cfLabel != null && cfLabel.length() > 0) {
+			return cfLabel.startsWith(label);
+		}
+		return false;
+	}
 }
