@@ -17,6 +17,7 @@ package org.springframework.cfenv.jdbc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import org.springframework.cfenv.core.CfService;
 
@@ -32,7 +33,12 @@ public class CfJdbcUrlCreator {
 	public CfJdbcUrlCreator(List<CfService> cfServices) {
 		this.cfServices = cfServices;
 		jdbcUrlCreators = new ArrayList<>();
-		jdbcUrlCreators.add(new MySqlJdbcUrlCreator());
+		Iterable<JdbcUrlCreator> jdbcUrlCreatorIterable = ServiceLoader.load(JdbcUrlCreator.class);
+		for (JdbcUrlCreator jdbcUrlCreator : jdbcUrlCreatorIterable) {
+			if (jdbcUrlCreator != null) {
+				jdbcUrlCreators.add(jdbcUrlCreator);
+			}
+		}
 	}
 
 	public String getJdbcUrl() {
