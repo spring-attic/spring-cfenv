@@ -69,8 +69,8 @@ Using the JSON from the previous section, here are some simple API calls to extr
 [source,java]
 ----
 CfEnv cfEnv = new CfEnv();
-String redisHost = cfEnv.findCredentialsByTag('redis').get('password');
-String redisPort = cfEnv.findCredentialsByTag('redis').get('port');
+String redisHost = cfEnv.findCredentialsByTag('redis').getPassword();
+String redisPort = cfEnv.findCredentialsByTag('redis').getPort();
 ----
 
 Multiple strings can be passed to match against more than one tag.
@@ -90,7 +90,7 @@ redisPlan = redisService.get("plan")
 
 CfCredentials redisCredentials = cfEnv.findCredentialsByTag("redis");
 String redisPort = redisCredentials.getPort();
-Integer redisPort = redisCredentials("port");
+Integer redisPort = redisCredentials.getMap().get("port");
 
 cfService = cfEnv.findServiceByName("redis");
 cfService = cfEnv.findServiceByLabel("p-redis");
