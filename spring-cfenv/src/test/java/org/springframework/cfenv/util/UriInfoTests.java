@@ -70,7 +70,7 @@ public class UriInfoTests {
 			String username, String password, String path, String query) {
 		assertThat(host).isEqualTo(result.getHost());
 		assertThat(port).isEqualTo(result.getPort());
-		assertThat(username).isEqualTo(result.getUserName());
+		assertThat(username).isEqualTo(result.getUsername());
 		assertThat(password).isEqualTo(result.getPassword());
 		assertThat(path).isEqualTo(result.getPath());
 		assertThat(query).isEqualTo(result.getQuery());

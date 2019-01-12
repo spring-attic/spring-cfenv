@@ -42,4 +42,9 @@ public class CfEnvJdbc extends CfEnv {
 		CfJdbcUrlCreator cfJdbcEnv = new CfJdbcUrlCreator(this.findServicesByName(spec));
 		return cfJdbcEnv.getJdbcUrl();
 	}
+
+	public CfJdbcService findJdbcService() {
+		CfJdbcUrlCreator cfJdbcEnv = new CfJdbcUrlCreator(this.findAllServices());
+		return cfJdbcEnv.getJdbcService();
+	}
 }

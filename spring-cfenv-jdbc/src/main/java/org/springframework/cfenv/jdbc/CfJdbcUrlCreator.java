@@ -52,4 +52,15 @@ public class CfJdbcUrlCreator {
 		return null;
 	}
 
+	public CfJdbcService getJdbcService() {
+		for (CfService cfService : cfServices) {
+			for (JdbcUrlCreator jdbcUrlCreator : jdbcUrlCreators) {
+				if (jdbcUrlCreator.isDatabaseService(cfService)) {
+					return new CfJdbcService(cfService, jdbcUrlCreator.createJdbcUrl(cfService));
+				}
+			}
+		}
+		return null;
+	}
+
 }

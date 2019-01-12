@@ -15,28 +15,39 @@
  */
 package org.springframework.cfenv.jdbc;
 
-import org.springframework.cfenv.core.CfCredentials;
 import org.springframework.cfenv.core.CfService;
 import org.springframework.cfenv.util.UriInfo;
 
 /**
+ * Wrapper for a relational database service.
  * @author Mark Pollack
  */
-public abstract class AbstractJdbcUrlCreator implements JdbcUrlCreator {
+public class CfJdbcService {
 
-	public static final String JDBC_PREFIX = "jdbc:";
+	private  CfService cfService;
+	private String jdbcUrl;
 
-	protected boolean jdbcUrlMatchesScheme(CfService cfService, String... uriSchemes) {
-		CfCredentials cfCredentials = cfService.getCredentials();
-		String jdbcUrl = (String) cfCredentials.getMap().get("jdbcUrl");
-		if (jdbcUrl != null) {
-			for (String uriScheme : uriSchemes) {
-				if (jdbcUrl.startsWith(JDBC_PREFIX + uriScheme + ":")) {
-					return true;
-				}
-			}
-		}
-		return false;
+	public CfJdbcService(CfService cfService, String jdbcUrl) {
+		this.cfService = cfService;
+		this.jdbcUrl = jdbcUrl;
 	}
 
+	public CfService getCfService() {
+		return cfService;
+	}
+
+	public String getJdbcUrl() {
+		return jdbcUrl;
+	}
+
+	public UriInfo getUriInfo() {
+		String jdbcUrlWithoutPrefix = jdbcUrl.substring(5);
+		String scheme = jdbcUrlWithoutPrefix.substring(0,  jdbcUrlWithoutPrefix.indexOf(":"));
+		return this.cfService.getCredentials().getUriInfo(scheme);
+	}
+
+	public String getDriverClassname() {
+		//TODO return based on scheme name and driver class path availability
+		return null;
+	}
 }

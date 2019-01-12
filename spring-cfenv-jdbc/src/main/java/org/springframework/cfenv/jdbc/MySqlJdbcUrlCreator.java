@@ -43,6 +43,8 @@ public class MySqlJdbcUrlCreator extends AbstractJdbcUrlCreator {
 		return false;
 	}
 
+
+
 	@Override
 	public String createJdbcUrl(CfService cfService) {
 		CfCredentials cfCredentials = cfService.getCredentials();
@@ -56,7 +58,7 @@ public class MySqlJdbcUrlCreator extends AbstractJdbcUrlCreator {
 	}
 
 	public String buildJdbcUrlFromUriField(CfCredentials cfCredentials) {
-		UriInfo uriInfo = getUriInfo(cfCredentials, MYSQL_SCHEME);
+		UriInfo uriInfo = cfCredentials.getUriInfo(MYSQL_SCHEME);
 		return String.format("%s%s://%s%s/%s%s%s", JDBC_PREFIX, MYSQL_SCHEME,
 				uriInfo.getHost(),
 				uriInfo.formatPort(),

@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.cfenv.util.UriInfo;
+
 /**
  * @author Mark Pollack
  */
@@ -39,7 +41,7 @@ public class CfCredentials {
 	 * Looks for the keys 'host' and 'hostname' in the credential map
 	 * @return value of the host or hostname key.
 	 */
-	public String getHostname() {
+	public String getHost() {
 		return getString(new String[] { "host", "hostname" });
 	}
 
@@ -82,6 +84,28 @@ public class CfCredentials {
 		}
 		return getString(keys.toArray(new String[keys.size()]));
 
+	}
+
+	/**
+	 * Return UriInfo derived from URI field
+	 * @param uriScheme a uri scheme name to use as a prefix to search of the uri field
+	 * @return the UriInfo object
+	 */
+	public UriInfo getUriInfo(String uriScheme) {
+		String uri = getUri(uriScheme);
+		UriInfo uriInfo;
+		if (uri == null) {
+			String hostname = getHost();
+			String port = getPort();
+			String username = getUsername();
+			String password = getPassword();
+			String databaseName = getName();
+			uriInfo = new UriInfo(uriScheme, hostname, Integer.valueOf(port), username, password, databaseName);
+		}
+		else {
+			uriInfo = new UriInfo(uri);
+		}
+		return uriInfo;
 	}
 
 	public String getString(String... keys) {

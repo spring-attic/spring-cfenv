@@ -115,11 +115,12 @@ public class UriInfo {
 		return host;
 	}
 
+	//TODO consider changing to String.
 	public int getPort() {
 		return port;
 	}
 
-	public String getUserName() {
+	public String getUsername() {
 		return userName;
 	}
 

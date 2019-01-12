@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.cfenv.jdbc;
+package org.springframework.cfenv.spring.boot;
 
-import org.springframework.cfenv.core.CfService;
+import org.springframework.cfenv.core.CfEnv;
 
 /**
- * Strategy interface for creating JDBC URL for various types of database services.
  * @author Mark Pollack
  */
-public interface JdbcUrlCreator {
+public final class CfEnvSingleton {
 
-	/**
-	 * Identifies the provided service as a database service
-	 * @param cfService a Cloud Foundry service
-	 * @return {@code true} if the service describes a database service, {@code false}
-	 * otherwise.
-	 */
-	boolean isDatabaseService(CfService cfService);
+	private static CfEnv INSTANCE;
 
-	String createJdbcUrl(CfService cfService);
+	private CfEnvSingleton() {
 
+	}
+
+	public synchronized static CfEnv getCfEnvInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new CfEnv();
+		}
+		return INSTANCE;
+	}
 }
