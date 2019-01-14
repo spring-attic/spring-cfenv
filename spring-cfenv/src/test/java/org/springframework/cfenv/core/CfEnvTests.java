@@ -24,7 +24,6 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.cfenv.util.AbstractTestSupport;
-import org.springframework.cfenv.util.UriInfo;
 import org.springframework.util.ResourceUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,13 +110,19 @@ public class CfEnvTests extends AbstractTestSupport {
 				"mysql://mysql_username:mysql_password@10.0.4.35:3306/cf_2e23d10a_8738_8c3c_66cf_13e44422698c?reconnect=true");
 
 		UriInfo uriInfo = cfCredentials.getUriInfo("mysql");
+		assertUriInfo(uriInfo);
+		uriInfo = cfCredentials.getUriInfo();
+		assertUriInfo(uriInfo);
+		// assertThat(cfCredentials.findJdbcUrl()).isEqualTo(
+		// "jdbc:mysql://10.0.4.35:3306/cf_2e23d10a_8738_8c3c_66cf_13e44422698c?user=mysql_username&password=mysql_password");
+
+	}
+
+	private void assertUriInfo(UriInfo uriInfo) {
 		assertThat(uriInfo.getUsername()).isEqualTo("mysql_username");
 		assertThat(uriInfo.getPassword()).isEqualTo("mysql_password");
 		assertThat(uriInfo.getHost()).isEqualTo("10.0.4.35");
 		assertThat(uriInfo.getPort()).isEqualTo(3306);
-		// assertThat(cfCredentials.findJdbcUrl()).isEqualTo(
-		// "jdbc:mysql://10.0.4.35:3306/cf_2e23d10a_8738_8c3c_66cf_13e44422698c?user=mysql_username&password=mysql_password");
-
 	}
 
 	@Test

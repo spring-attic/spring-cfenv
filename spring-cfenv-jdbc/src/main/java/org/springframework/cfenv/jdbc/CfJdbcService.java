@@ -15,39 +15,28 @@
  */
 package org.springframework.cfenv.jdbc;
 
+import java.util.Map;
+
 import org.springframework.cfenv.core.CfService;
-import org.springframework.cfenv.util.UriInfo;
 
 /**
- * Wrapper for a relational database service.
  * @author Mark Pollack
  */
-public class CfJdbcService {
+public class CfJdbcService extends CfService {
 
-	private  CfService cfService;
-	private String jdbcUrl;
-
-	public CfJdbcService(CfService cfService, String jdbcUrl) {
-		this.cfService = cfService;
-		this.jdbcUrl = jdbcUrl;
-	}
-
-	public CfService getCfService() {
-		return cfService;
+	public CfJdbcService(Map<String, Object> serviceData) {
+		super(serviceData);
 	}
 
 	public String getJdbcUrl() {
-		return jdbcUrl;
+		return getCredentials().getDerivedCredentials().get("jdbcUrl");
 	}
 
-	public UriInfo getUriInfo() {
-		String jdbcUrlWithoutPrefix = jdbcUrl.substring(5);
-		String scheme = jdbcUrlWithoutPrefix.substring(0,  jdbcUrlWithoutPrefix.indexOf(":"));
-		return this.cfService.getCredentials().getUriInfo(scheme);
+	public String getJdbcUsername() {
+		return getCredentials().getUsername();
 	}
 
-	public String getDriverClassname() {
-		//TODO return based on scheme name and driver class path availability
-		return null;
+	public String getJdbcPassword() {
+		return getCredentials().getPassword();
 	}
 }

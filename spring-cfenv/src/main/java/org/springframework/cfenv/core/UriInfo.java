@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.cfenv.util;
+package org.springframework.cfenv.core;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -115,7 +115,6 @@ public class UriInfo {
 		return host;
 	}
 
-	//TODO consider changing to String.
 	public int getPort() {
 		return port;
 	}

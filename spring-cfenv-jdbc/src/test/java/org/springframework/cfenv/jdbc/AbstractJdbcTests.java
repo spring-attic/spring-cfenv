@@ -28,8 +28,8 @@ import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import org.springframework.cfenv.core.UriInfo;
 import org.springframework.cfenv.util.EnvironmentAccessor;
-import org.springframework.cfenv.util.UriInfo;
 
 /**
  * @author Mark Pollack

@@ -17,7 +17,6 @@ package org.springframework.cfenv.jdbc;
 
 import org.springframework.cfenv.core.CfCredentials;
 import org.springframework.cfenv.core.CfService;
-import org.springframework.cfenv.util.UriInfo;
 
 /**
  * @author Mark Pollack

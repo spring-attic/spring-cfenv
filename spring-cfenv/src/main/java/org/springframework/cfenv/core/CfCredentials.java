@@ -17,10 +17,9 @@ package org.springframework.cfenv.core;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.cfenv.util.UriInfo;
 
 /**
  * @author Mark Pollack
@@ -29,24 +28,56 @@ public class CfCredentials {
 
 	private final Map<String, Object> credentailsData;
 
+	private UriInfo uriInfo;
+
+	private Map<String, String> derivedCredentials = new HashMap<>();
+
 	public CfCredentials(Map<String, Object> credentailsData) {
 		this.credentailsData = credentailsData;
+	}
+
+	private synchronized UriInfo createOrGetUriInfo() {
+		try {
+			if (uriInfo == null) {
+				if (credentailsData.containsKey("uri") || credentailsData.containsKey("url")) {
+					uriInfo = new UriInfo(getString(new String[] { "uri", "url" }));
+				}
+			}
+		}
+		catch (Exception e) {
+
+		}
+		return uriInfo;
 	}
 
 	public Map<String, Object> getMap() {
 		return credentailsData;
 	}
 
+	public Map<String, String> getDerivedCredentials() {
+		return derivedCredentials;
+	}
+
 	/**
 	 * Looks for the keys 'host' and 'hostname' in the credential map
-	 * @return value of the host or hostname key.
+	 * @return value of the host or hostname key if present, null otherwise.
 	 */
 	public String getHost() {
-		return getString(new String[] { "host", "hostname" });
+		String host = getString(new String[] { "host", "hostname" });
+		if (host != null) {
+			return host;
+		}
+		UriInfo uriInfo = createOrGetUriInfo();
+		return (uriInfo != null) ? uriInfo.getHost() : null;
 	}
 
 	public String getPort() {
-		return getString("port");
+		String port = getString("port");
+		if (port != null) {
+			return port;
+		}
+		UriInfo uriInfo = createOrGetUriInfo();
+		return (uriInfo != null) ? String.valueOf(uriInfo.getPort()) : null;
 	}
 
 	public String getName() {
@@ -58,11 +89,21 @@ public class CfCredentials {
 	 * @return value of the username or user key.
 	 */
 	public String getUsername() {
-		return getString(new String[] { "username", "user" });
+		String username = getString(new String[] { "username", "user" });
+		if (username != null) {
+			return username;
+		}
+		UriInfo uriInfo = createOrGetUriInfo();
+		return (uriInfo != null) ? uriInfo.getUsername() : null;
 	}
 
 	public String getPassword() {
-		return getString("password");
+		String password = getString("password");
+		if (password != null) {
+			return password;
+		}
+		UriInfo uriInfo = createOrGetUriInfo();
+		return (uriInfo != null) ? uriInfo.getPassword() : null;
 	}
 
 	/**
@@ -83,7 +124,14 @@ public class CfCredentials {
 			keys.add(uriScheme + "url");
 		}
 		return getString(keys.toArray(new String[keys.size()]));
+	}
 
+	/**
+	 * Return UriInfo derived from the field 'uri' or 'url'
+	 * @return the UriInfo object
+	 */
+	public UriInfo getUriInfo() {
+		return createOrGetUriInfo();
 	}
 
 	/**

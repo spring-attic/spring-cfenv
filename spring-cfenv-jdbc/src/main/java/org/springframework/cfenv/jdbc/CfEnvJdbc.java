@@ -34,17 +34,17 @@ public class CfEnvJdbc extends CfEnv {
 
 	public String findJdbcUrl() {
 		// TODO detect if more than one db service is bound and throw exception
-		CfJdbcUrlCreator cfJdbcEnv = new CfJdbcUrlCreator(this.findAllServices());
-		return cfJdbcEnv.getJdbcUrl();
+		CfJdbcUrlCreator cfJdbcUrlCreator = new CfJdbcUrlCreator(this.findAllServices());
+		return cfJdbcUrlCreator.getJdbcUrl();
 	}
 
 	public String findJdbcUrlByName(String... spec) {
-		CfJdbcUrlCreator cfJdbcEnv = new CfJdbcUrlCreator(this.findServicesByName(spec));
-		return cfJdbcEnv.getJdbcUrl();
+		CfJdbcUrlCreator cfJdbcUrlCreator = new CfJdbcUrlCreator(this.findServicesByName(spec));
+		return cfJdbcUrlCreator.getJdbcUrl();
 	}
 
 	public CfJdbcService findJdbcService() {
-		CfJdbcUrlCreator cfJdbcEnv = new CfJdbcUrlCreator(this.findAllServices());
-		return cfJdbcEnv.getJdbcService();
+		CfJdbcUrlCreator cfJdbcUrlCreator = new CfJdbcUrlCreator(this.findAllServices());
+		return cfJdbcUrlCreator.getJdbcService();
 	}
 }

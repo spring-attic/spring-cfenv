@@ -17,7 +17,7 @@ package org.springframework.cfenv.jdbc;
 
 import org.junit.Test;
 
-import org.springframework.cfenv.util.UriInfo;
+import org.springframework.cfenv.core.UriInfo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;

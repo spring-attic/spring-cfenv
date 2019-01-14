@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.cfenv.util;
+package org.springframework.cfenv.core;
 
 import org.junit.Test;
 
@@ -27,28 +27,29 @@ public class UriInfoTests {
 	@Test
 	public void createUri() {
 		String uri = "mysql://joe:joes_password@localhost:1527/big_db";
-		UriInfo result = new UriInfo(uri);
+		UriInfo uriInfo = new UriInfo(uri);
 
-		assertUriInfoEquals(result, "localhost", 1527, "joe", "joes_password", "big_db", null);
-		assertThat(uri).isEqualTo(result.getUriString());
+		assertUriInfoEquals(uriInfo, "localhost", 1527, "joe", "joes_password", "big_db", null);
+		assertThat(uri).isEqualTo(uriInfo.getUriString());
+		assertThat("//joe:joes_password@localhost:1527/big_db").isEqualTo(uriInfo.getSchemeSpecificPart());
 	}
 
 	@Test
 	public void createUriWithQuery() {
 		String uri = "mysql://joe:joes_password@localhost:1527/big_db?p1=v1&p2=v2";
-		UriInfo result = new UriInfo(uri);
+		UriInfo uriInfo = new UriInfo(uri);
 
-		assertUriInfoEquals(result, "localhost", 1527, "joe", "joes_password", "big_db", "p1=v1&p2=v2");
-		assertThat(uri).isEqualTo(result.getUriString());
+		assertUriInfoEquals(uriInfo, "localhost", 1527, "joe", "joes_password", "big_db", "p1=v1&p2=v2");
+		assertThat(uri).isEqualTo(uriInfo.getUriString());
 	}
 
 	@Test
 	public void createNoUsernamePassword() {
 		String uri = "mysql://localhost:1527/big_db";
-		UriInfo result = new UriInfo(uri);
+		UriInfo uriInfo = new UriInfo(uri);
 
-		assertUriInfoEquals(result, "localhost", 1527, null, null, "big_db", null);
-		assertThat(uri).isEqualTo(result.getUriString());
+		assertUriInfoEquals(uriInfo, "localhost", 1527, null, null, "big_db", null);
+		assertThat(uri).isEqualTo(uriInfo.getUriString());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -60,19 +61,21 @@ public class UriInfoTests {
 	@Test
 	public void createWithExplicitParameters() {
 		String uri = "mysql://joe:joes_password@localhost:1527/big_db";
-		UriInfo result = new UriInfo("mysql", "localhost", 1527, "joe", "joes_password", "big_db");
+		UriInfo uriInfo = new UriInfo("mysql", "localhost", 1527, "joe", "joes_password", "big_db");
 
-		assertUriInfoEquals(result, "localhost", 1527, "joe", "joes_password", "big_db", null);
-		assertThat(uri).isEqualTo(result.getUriString());
+		assertUriInfoEquals(uriInfo, "localhost", 1527, "joe", "joes_password", "big_db", null);
+		assertThat(uri).isEqualTo(uriInfo.getUriString());
 	}
 
-	private void assertUriInfoEquals(UriInfo result, String host, int port,
+	private void assertUriInfoEquals(UriInfo uriInfo, String host, int port,
 			String username, String password, String path, String query) {
-		assertThat(host).isEqualTo(result.getHost());
-		assertThat(port).isEqualTo(result.getPort());
-		assertThat(username).isEqualTo(result.getUsername());
-		assertThat(password).isEqualTo(result.getPassword());
-		assertThat(path).isEqualTo(result.getPath());
-		assertThat(query).isEqualTo(result.getQuery());
+		assertThat(host).isEqualTo(uriInfo.getHost());
+		assertThat(port).isEqualTo(uriInfo.getPort());
+		assertThat(username).isEqualTo(uriInfo.getUsername());
+		assertThat(password).isEqualTo(uriInfo.getPassword());
+		assertThat(path).isEqualTo(uriInfo.getPath());
+		assertThat(query).isEqualTo(uriInfo.getQuery());
+		assertThat("mysql").isEqualTo(uriInfo.getScheme());
 	}
+
 }
