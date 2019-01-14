@@ -22,7 +22,7 @@ import java.util.Map;
 
 /**
  * Contains the Map of values and type-safe accessors for properties of a single service
- * defined in VCAP_SERVICES
+ * defined in VCAP_SERVICES.
  *
  * @author Mark Pollack
  */

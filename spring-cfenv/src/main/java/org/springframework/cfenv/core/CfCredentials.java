@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Access service credentials.
+ *
  * @author Mark Pollack
  */
 public class CfCredentials {
@@ -54,13 +56,18 @@ public class CfCredentials {
 		return credentailsData;
 	}
 
+	/**
+	 * Get a map that all
+	 * @return
+	 */
 	public Map<String, String> getDerivedCredentials() {
 		return derivedCredentials;
 	}
 
 	/**
-	 * Looks for the keys 'host' and 'hostname' in the credential map
-	 * @return value of the host or hostname key if present, null otherwise.
+	 * Return the host, under the keys 'host' and 'hostname' in the credential map.  If it is not found try to obtain
+	 * the host from the uri field.
+	 * @return value of the host, null if not found.
 	 */
 	public String getHost() {
 		String host = getString(new String[] { "host", "hostname" });
@@ -71,6 +78,11 @@ public class CfCredentials {
 		return (uriInfo != null) ? uriInfo.getHost() : null;
 	}
 
+	/**
+	 * Return the port, under the key 'port' in the credential map.  If it is not found try to obtain the port from
+	 * the uri field.
+	 * @return value of the port, null if not found.
+	 */
 	public String getPort() {
 		String port = getString("port");
 		if (port != null) {
@@ -85,8 +97,9 @@ public class CfCredentials {
 	}
 
 	/**
-	 * Looks for the keys 'username' and 'user' in the credential map
-	 * @return value of the username or user key.
+	 * Return the username, under the keys 'username' and 'user' in the credential map.  If it is not found try to
+	 * obtain the usernam from the uri field.
+	 * @return value of the username, null if not found.
 	 */
 	public String getUsername() {
 		String username = getString(new String[] { "username", "user" });
@@ -97,6 +110,11 @@ public class CfCredentials {
 		return (uriInfo != null) ? uriInfo.getUsername() : null;
 	}
 
+	/**
+	 * Return the password, under the key 'password' in the credential map.  If it is not found try to obtain the
+	 * password in the uri field.
+	 * @return value of the password, null if not found.
+	 */
 	public String getPassword() {
 		String password = getString("password");
 		if (password != null) {

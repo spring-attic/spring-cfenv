@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cfenv.util.EnvironmentAccessor;
 
 /**
+ * Provides access to Cloud Foundry environment variables.
  * @author Mark Pollack
  */
 public class CfEnv {
