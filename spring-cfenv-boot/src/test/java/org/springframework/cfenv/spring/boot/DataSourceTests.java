@@ -17,7 +17,6 @@ package org.springframework.cfenv.spring.boot;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import mockit.Mock;
@@ -26,9 +25,6 @@ import org.junit.Test;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.test.context.support.TestPropertySourceUtils;
 import org.springframework.util.ResourceUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,14 +44,11 @@ public class DataSourceTests {
 	public void testDataSource() throws Exception {
 
 		// To make CloudPlatform test pass
-		MutablePropertySources propertySources = this.context.getEnvironment().getPropertySources();
-		Map<String, Object> properties = new LinkedHashMap<>();
+		System.setProperty("VCAP_APPLICATION", "yes");
+
+		// To setup values used by CfEnv
 		File file = ResourceUtils.getFile("classpath:vcap-services.json");
 		String fileContents = new String(Files.readAllBytes(file.toPath()));
-		TestPropertySourceUtils.addInlinedPropertiesToEnvironment(this.context, "VCAP_SERVICES=" + fileContents);
-		propertySources.addFirst(new MapPropertySource("testvcapservice", properties));
-
-		// To setup values used by CfJdbcEnv
 		Map<String, String> env = System.getenv();
 		new MockUp<System>() {
 			@Mock

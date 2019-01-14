@@ -18,12 +18,10 @@ package org.springframework.cfenv.spring.boot;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.config.ConfigFileApplicationListener;
+import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
 import org.springframework.cfenv.jdbc.CfEnvJdbc;
@@ -35,14 +33,16 @@ import org.springframework.core.env.CommandLinePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Mark Pollack
  */
+@Component
 public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
 		ApplicationListener<ApplicationEvent> {
 
-	private Log logger = new DeferredLog();
+	private DeferredLog logger = new DeferredLog();
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private int order = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
@@ -60,6 +60,13 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
+		// System.out.println("Printing stack trace:");
+		// StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+		// for (int i = 1; i < elements.length; i++) {
+		// StackTraceElement s = elements[i];
+		// System.out.println("\tat " + s.getClassName() + "." + s.getMethodName()
+		// + "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
+		// }
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
 			CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
 			CfJdbcService cfJdbcService;
@@ -81,7 +88,7 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 				properties.put("spring.datasource.url", cfJdbcService.getJdbcUrl());
 				properties.put("spring.datasource.username", cfJdbcService.getJdbcUsername());
 				properties.put("spring.datasource.password", cfJdbcService.getJdbcPassword());
-
+				properties.put("spring.datasource.driver-class-name", "org.mariadb.jdbc.Driver");
 
 				System.out.println("println: Setting spring.datasource.username = " + cfJdbcService.getJdbcUsername());
 				System.out.println("println: Setting spring.datasource.password = " + cfJdbcService.getJdbcPassword());
@@ -109,6 +116,9 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		this.logger = DeferredLog.replay(this.logger, LogFactory.getLog(getClass()));
+		if (event instanceof ApplicationPreparedEvent) {
+			this.logger.switchTo(CfDataSourceEnvironmentPostProcessor.class);
+		}
+
 	}
 }

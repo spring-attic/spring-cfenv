@@ -18,12 +18,10 @@ package org.springframework.cfenv.spring.boot;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.config.ConfigFileApplicationListener;
+import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
 import org.springframework.cfenv.core.CfCredentials;
@@ -36,10 +34,12 @@ import org.springframework.core.env.CommandLinePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Mark Pollack
  */
+@Component
 public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
 		ApplicationListener<ApplicationEvent> {
 
@@ -47,7 +47,7 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 
 	private static final String PROPERTY_SOURCE_NAME = "cfSingleSignOnEnvironmentPostProcessor";
 
-	private Log logger = new DeferredLog();
+	private DeferredLog logger = new DeferredLog();
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private int order = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
@@ -118,7 +118,9 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
-		this.logger = DeferredLog.replay(this.logger, LogFactory.getLog(getClass()));
+		if (event instanceof ApplicationPreparedEvent) {
+			this.logger.switchTo(CfSingleSignOnEnvironmentPostProcessor.class);
+		}
 	}
 
 }
