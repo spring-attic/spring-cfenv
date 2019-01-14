@@ -109,6 +109,11 @@ There is additional support for getting the JDBC URL contained in the module `sp
 ----
 CfEnvJdbc cfEnvJdbc = new CfEnvJdbc()
 String jdbcUrl = cfEnvJdbc.findJdbcUrl();
+
+CfJdbcService cfJdbcService = cfEnvJdbc.findJdbcService();
+jdbcUrl = cfJdbcService.getJdbcUrl();
+String username = cfJdbcService.getUsername();
+String password = cfJdbcService.getPassword();
 ----
 
 TODO: If there is more than one database, an exception will be thrown and you should use the `findJdbcUrlByName` method to locate a unique database service.
