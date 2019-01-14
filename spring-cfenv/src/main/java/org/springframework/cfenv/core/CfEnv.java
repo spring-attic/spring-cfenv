@@ -22,8 +22,6 @@ import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.springframework.cfenv.util.EnvironmentAccessor;
-
 /**
  * Provides access to Cloud Foundry environment variables.
  * @author Mark Pollack
@@ -34,8 +32,6 @@ public class CfEnv {
 
 	public static final String VCAP_SERVICES = "VCAP_SERVICES";
 
-	public final EnvironmentAccessor environmentAccessor;
-
 	/* TODO  pick small json parser and package as a shadowed jar*/
 	private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -44,13 +40,8 @@ public class CfEnv {
 	//TODO consider JVM singleon access to avoid excessive creation when using spring boot EnvironmentPostProcessors
 
 	public CfEnv() {
-		this(new EnvironmentAccessor());
-	}
-
-	public CfEnv(EnvironmentAccessor environmentAccessor) {
-		this.environmentAccessor = environmentAccessor;
 		try {
-			String vcapServicesJson = this.environmentAccessor.getenv(VCAP_SERVICES);
+			String vcapServicesJson = System.getenv(VCAP_SERVICES);
 			if (vcapServicesJson != null && vcapServicesJson.length() > 0) {
 				Map<String, List<Map<String, Object>>> rawServices = this.objectMapper.readValue(vcapServicesJson,
 						new TypeReference<Map<String, List<Map<String, Object>>>>() {
@@ -177,7 +168,7 @@ public class CfEnv {
 	 * {@code false} otherwise.
 	 */
 	public boolean isInCf() {
-		return this.environmentAccessor.getenv(VCAP_APPLICATION) != null;
+		return System.getenv(VCAP_APPLICATION) != null;
 	}
 
 }

@@ -34,8 +34,19 @@ public class CfService {
 
 	private final Map<String, Object> serviceData;
 
+	private final CfCredentials cfCredentials;
+
 	public CfService(Map<String, Object> serviceData) {
 		this.serviceData = serviceData;
+		this.cfCredentials = createCredentials();
+	}
+
+	public CfCredentials createCredentials() {
+		Map<String, Object> credentials = new HashMap<>();
+		if (this.serviceData.containsKey(CREDENTIALS)) {
+			credentials = (Map<String, Object>) this.serviceData.get(CREDENTIALS);
+		}
+		return new CfCredentials(credentials);
 	}
 
 	public Map<String, Object> getMap() {
@@ -43,11 +54,7 @@ public class CfService {
 	}
 
 	public CfCredentials getCredentials() {
-		Map<String, Object> credentials = new HashMap<>();
-		if (this.serviceData.containsKey(CREDENTIALS)) {
-			credentials = (Map<String, Object>) this.serviceData.get(CREDENTIALS);
-		}
-		return new CfCredentials(credentials);
+		return this.cfCredentials;
 	}
 
 	public List<String> getTags() {

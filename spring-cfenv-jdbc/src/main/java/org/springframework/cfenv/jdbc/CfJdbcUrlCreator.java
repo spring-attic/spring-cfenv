@@ -58,7 +58,7 @@ public class CfJdbcUrlCreator {
 				if (jdbcUrlCreator.isDatabaseService(cfService)) {
 					CfJdbcService cfJdbcService = new CfJdbcService(cfService.getMap());
 					String jdbcUrl = jdbcUrlCreator.createJdbcUrl(cfService);
-					cfService.getCredentials().getDerivedCredentials().put("jdbcUrl", jdbcUrl);
+					cfJdbcService.getCredentials().getDerivedCredentials().put("jdbcUrl", jdbcUrl);
 					return cfJdbcService;
 				}
 			}

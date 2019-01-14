@@ -16,7 +16,6 @@
 package org.springframework.cfenv.jdbc;
 
 import org.springframework.cfenv.core.CfEnv;
-import org.springframework.cfenv.util.EnvironmentAccessor;
 
 /**
  * Subclass that adds methods specifc for easy access to JDBC related credentails.
@@ -26,10 +25,6 @@ public class CfEnvJdbc extends CfEnv {
 
 	public CfEnvJdbc() {
 		super();
-	}
-
-	public CfEnvJdbc(EnvironmentAccessor environmentAccessor) {
-		super(environmentAccessor);
 	}
 
 	public String findJdbcUrl() {

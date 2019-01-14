@@ -24,12 +24,11 @@ import java.util.Map;
 import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import mockit.MockUp;
 import org.junit.Before;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import org.springframework.cfenv.core.UriInfo;
-import org.springframework.cfenv.util.EnvironmentAccessor;
 
 /**
  * @author Mark Pollack
@@ -46,8 +45,19 @@ public class AbstractJdbcTests {
 
 	private static ObjectMapper objectMapper = new ObjectMapper();
 
-	@Mock
-	protected EnvironmentAccessor mockEnvironment;
+	protected void mockVcapServices(String serviceJson) {
+		Map<String, String> env = System.getenv();
+		new MockUp<System>() {
+			@mockit.Mock
+			public String getenv(String name) {
+				if (name.equalsIgnoreCase("VCAP_SERVICES")) {
+					return serviceJson;
+				}
+				return env.get(name);
+			}
+		};
+
+	}
 
 	@SuppressWarnings("unchecked")
 	private static String getServiceLabel(String servicePayload) {

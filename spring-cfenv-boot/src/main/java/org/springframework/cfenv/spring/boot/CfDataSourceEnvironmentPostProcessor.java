@@ -73,27 +73,30 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 				return;
 			}
 			Map<String, Object> properties = new LinkedHashMap<>();
-			System.out.println("println: Setting spring.datasource.url property from bound service.  jdbcUrl = " + cfJdbcService.getJdbcUrl());
-			logger.info("Setting spring.datasource.url property from bound service.");
+			if (cfJdbcService != null) {
+				System.out.println("println: Setting spring.datasource.url property from bound service.  jdbcUrl = "
+						+ cfJdbcService.getJdbcUrl());
+				logger.info("Setting spring.datasource.url property from bound service.");
 
-			properties.put("spring.datasource.url", cfJdbcService.getJdbcUrl());
-			properties.put("spring.datasource.username", cfJdbcService.getJdbcUsername());
-			properties.put("spring.datasource.password", cfJdbcService.getJdbcPassword());
+				properties.put("spring.datasource.url", cfJdbcService.getJdbcUrl());
+				properties.put("spring.datasource.username", cfJdbcService.getJdbcUsername());
+				properties.put("spring.datasource.password", cfJdbcService.getJdbcPassword());
 
 
-			System.out.println("println: Setting spring.datasource.username = " + cfJdbcService.getJdbcUsername());
-			System.out.println("println: Setting spring.datasource.password = " + cfJdbcService.getJdbcPassword());
+				System.out.println("println: Setting spring.datasource.username = " + cfJdbcService.getJdbcUsername());
+				System.out.println("println: Setting spring.datasource.password = " + cfJdbcService.getJdbcPassword());
 
-			MutablePropertySources propertySources = environment.getPropertySources();
-			if (propertySources.contains(
-					CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME)) {
-				propertySources.addAfter(
-						CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME,
-						new MapPropertySource("cfenvjdbc", properties));
-			}
-			else {
-				propertySources
-						.addFirst(new MapPropertySource("cfenvjdbc", properties));
+				MutablePropertySources propertySources = environment.getPropertySources();
+				if (propertySources.contains(
+						CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME)) {
+					propertySources.addAfter(
+							CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME,
+							new MapPropertySource("cfenvjdbc", properties));
+				}
+				else {
+					propertySources
+							.addFirst(new MapPropertySource("cfenvjdbc", properties));
+				}
 			}
 		}
 		else {

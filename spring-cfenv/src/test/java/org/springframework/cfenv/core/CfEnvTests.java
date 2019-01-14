@@ -21,23 +21,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import mockit.Mock;
+import mockit.MockUp;
 import org.junit.Test;
 
-import org.springframework.cfenv.util.AbstractTestSupport;
 import org.springframework.util.ResourceUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Pollack
  */
-public class CfEnvTests extends AbstractTestSupport {
+public class CfEnvTests {
 
 	@Test
 	public void testCfService() {
-		CfEnv cfEnv = createTestCfEnv();
+		mockVcapServices();
+		CfEnv cfEnv = new CfEnv();
 
 		List<CfService> cfServices = cfEnv.findAllServices();
 		assertThat(cfServices.size()).isEqualTo(2);
@@ -127,7 +128,9 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	@Test
 	public void testFindServiceByName() {
-		CfEnv cfEnv = createTestCfEnv();
+		mockVcapServices();
+		CfEnv cfEnv = new CfEnv();
+
 		CfService cfService = cfEnv.findServiceByName("redis");
 		assertThat(cfService.getLabel()).isEqualTo("p-redis");
 		assertThat(cfService.getPlan()).isEqualTo("shared-vm");
@@ -158,7 +161,9 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	@Test
 	public void testFindServiceByLabel() {
-		CfEnv cfEnv = createTestCfEnv();
+		mockVcapServices();
+		CfEnv cfEnv = new CfEnv();
+
 		CfService cfService = cfEnv.findServiceByLabel("p-redis");
 		assertThat(cfService.getLabel()).isEqualTo("p-redis");
 		assertThat(cfService.getPlan()).isEqualTo("shared-vm");
@@ -191,7 +196,9 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	@Test
 	public void testFindServiceByTag() {
-		CfEnv cfEnv = createTestCfEnv();
+		mockVcapServices();
+		CfEnv cfEnv = new CfEnv();
+
 		CfService cfService = cfEnv.findServiceByTag("redis");
 		assertThat(cfService.getLabel()).isEqualTo("p-redis");
 		assertThat(cfService.getPlan()).isEqualTo("shared-vm");
@@ -221,7 +228,8 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	@Test
 	public void testFindCredentialsByName() {
-		CfEnv cfEnv = createTestCfEnv();
+		mockVcapServices();
+		CfEnv cfEnv = new CfEnv();
 
 		CfCredentials cfCredentials = cfEnv.findCredentialsByName("mysql");
 		assertMySqlCredentials(cfCredentials);
@@ -251,7 +259,8 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	@Test
 	public void testFindCredentialsByLabel() {
-		CfEnv cfEnv = createTestCfEnv();
+		mockVcapServices();
+		CfEnv cfEnv = new CfEnv();
 
 		CfCredentials cfCredentials = cfEnv.findCredentialsByLabel("p-mysql");
 		assertMySqlCredentials(cfCredentials);
@@ -280,7 +289,8 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	@Test
 	public void testFindCredentialsByTag() {
-		CfEnv cfEnv = createTestCfEnv();
+		mockVcapServices();
+		CfEnv cfEnv = new CfEnv();
 
 		CfCredentials cfCredentials = cfEnv.findCredentialsByTag("mysql");
 		assertMySqlCredentials(cfCredentials);
@@ -310,7 +320,8 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	@Test
 	public void testMultipleMatchingServices() {
-		CfEnv cfEnv = createTestCfEnv("vcap-services-multiple-mysql.json");
+		mockVcapServices("vcap-services-multiple-mysql.json");
+		CfEnv cfEnv = new CfEnv();
 		List<CfService> services = cfEnv.findAllServices();
 		assertThat(services.size()).isEqualTo(3);
 
@@ -331,23 +342,31 @@ public class CfEnvTests extends AbstractTestSupport {
 
 	}
 
-	private CfEnv createTestCfEnv(String fileName) {
-		File file = null;
+	private void mockVcapServices(String fileName) {
+		String fileContents;
 		try {
-			file = ResourceUtils.getFile("classpath:" + fileName);
-
-			String fileContents = new String(Files.readAllBytes(file.toPath()));
-			when(mockEnvironmentAccessor.getenv(CfEnv.VCAP_SERVICES))
-					.thenReturn(fileContents);
-			return new CfEnv(mockEnvironmentAccessor);
+			File file = ResourceUtils.getFile("classpath:" + fileName);
+			fileContents = new String(Files.readAllBytes(file.toPath()));
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
+
+		Map<String, String> env = System.getenv();
+		new MockUp<System>() {
+			@Mock
+			public String getenv(String name) {
+				if (name.equalsIgnoreCase("VCAP_SERVICES")) {
+					return fileContents;
+				}
+				return env.get(name);
+			}
+		};
+
 	}
 
-	private CfEnv createTestCfEnv() {
-		return createTestCfEnv("vcap-services.json");
+	private void mockVcapServices() {
+		mockVcapServices("vcap-services.json");
 	}
 
 }

@@ -77,34 +77,37 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 				logger.info("Skipping execution of CfSingleSignOnEnvironmentPostProcessor.  " + e.getMessage());
 				return;
 			}
+			if (cfService != null) {
+				CfCredentials cfCredentials = cfService.getCredentials();
+				String clientId = cfCredentials.getString("client_id");
+				String clientSecret = cfCredentials.getString("client_secret");
+				String authDomain = cfCredentials.getString("auth_domain");
 
-			CfCredentials cfCredentials = cfService.getCredentials();
-			String clientId = cfCredentials.getString("client_id");
-			String clientSecret = cfCredentials.getString("client_secret");
-			String authDomain = cfCredentials.getString("auth_domain");
+				properties.put("security.oauth2.client.clientId", clientId);
+				properties.put("security.oauth2.client.clientSecret", clientSecret);
+				properties.put("security.oauth2.client.accessTokenUri", authDomain + "/oauth/token");
+				properties.put("security.oauth2.client.userAuthorizationUri", authDomain + "/oauth/authorize");
+				properties.put("ssoServiceUrl", authDomain);
+				properties.put("security.oauth2.resource.userInfoUri", authDomain + "/userinfo");
+				properties.put("security.oauth2.resource.tokenInfoUri", authDomain + "/check_token");
+				properties.put("security.oauth2.resource.jwk.key-set-uri", authDomain + "/token_keys");
 
-			properties.put("security.oauth2.client.clientId", clientId);
-			properties.put("security.oauth2.client.clientSecret", clientSecret);
-			properties.put("security.oauth2.client.accessTokenUri", authDomain + "/oauth/token");
-			properties.put("security.oauth2.client.userAuthorizationUri", authDomain + "/oauth/authorize");
-			properties.put("ssoServiceUrl", authDomain);
-			properties.put("security.oauth2.resource.userInfoUri", authDomain + "/userinfo");
-			properties.put("security.oauth2.resource.tokenInfoUri", authDomain + "/check_token");
-			properties.put("security.oauth2.resource.jwk.key-set-uri", authDomain + "/token_keys");
+				System.out
+						.println("println: Setting security.oauth2.client properties from bound service.  Auth domain "
+								+ authDomain);
+				logger.info("Setting security.oauth2.client properties from bound service.");
 
-			System.out.println("println: Setting security.oauth2.client properties from bound service.  Auth domain " + authDomain);
-			logger.info("Setting security.oauth2.client properties from bound service.");
-
-			MutablePropertySources propertySources = environment.getPropertySources();
-			if (propertySources.contains(
-					CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME)) {
-				propertySources.addAfter(
-						CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME,
-						new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
-			}
-			else {
-				propertySources
-						.addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
+				MutablePropertySources propertySources = environment.getPropertySources();
+				if (propertySources.contains(
+						CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME)) {
+					propertySources.addAfter(
+							CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME,
+							new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
+				}
+				else {
+					propertySources
+							.addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
+				}
 			}
 		}
 		else {

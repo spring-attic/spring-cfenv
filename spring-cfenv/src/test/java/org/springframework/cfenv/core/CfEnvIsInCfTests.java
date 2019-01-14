@@ -15,32 +15,44 @@
  */
 package org.springframework.cfenv.core;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import java.util.Map;
 
-import org.springframework.cfenv.util.AbstractTestSupport;
+import mockit.Mock;
+import mockit.MockUp;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Mark Pollack
  */
-@RunWith(MockitoJUnitRunner.class)
-public class CfEnvIsInCfTests extends AbstractTestSupport {
+public class CfEnvIsInCfTests {
 
 	@Test
 	public void testIsInCf() {
-		when(mockEnvironmentAccessor.getenv(CfEnv.VCAP_APPLICATION)).thenReturn("{\"instance_id\":\"123\"");
-		CfEnv cfEnv = new CfEnv(mockEnvironmentAccessor);
+		mockVcapApplication();
+		CfEnv cfEnv = new CfEnv();
 		assertThat(cfEnv.isInCf()).isTrue();
 	}
 
 	@Test
 	public void testIsInCfFalse() {
-		CfEnv cfEnv = new CfEnv(mockEnvironmentAccessor);
+		CfEnv cfEnv = new CfEnv();
 		assertThat(cfEnv.isInCf()).isFalse();
+	}
+
+	private void mockVcapApplication() {
+		Map<String, String> env = System.getenv();
+		new MockUp<System>() {
+			@Mock
+			public String getenv(String name) {
+				if (name.equalsIgnoreCase("VCAP_APPLICATION")) {
+					return "{\"instance_id\":\"123\"";
+				}
+				return env.get(name);
+			}
+		};
+
 	}
 
 }

@@ -83,29 +83,33 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 				return;
 			}
 
-			CfCredentials cfCredentials = cfService.getCredentials();
-			String uri = cfCredentials.getUri();
-			String clientId = cfCredentials.getString("client_id");
-			String clientSecret = cfCredentials.getString("client_secret");
-			String accessTokenUri = cfCredentials.getString("access_token_uri");
+			if (cfService != null) {
+				CfCredentials cfCredentials = cfService.getCredentials();
+				String uri = cfCredentials.getUri();
+				String clientId = cfCredentials.getString("client_id");
+				String clientSecret = cfCredentials.getString("client_secret");
+				String accessTokenUri = cfCredentials.getString("access_token_uri");
 
-			properties.put(SPRING_CLOUD_CONFIG_URI, uri);
-			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID, clientId);
-			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET, clientSecret);
-			properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI, accessTokenUri);
-			System.out.println("println: Setting spring.cloud.config.client properties from bound service.  Access token uri = " + accessTokenUri);
-			logger.info("Setting spring.cloud.config.client properties from bound service.");
+				properties.put(SPRING_CLOUD_CONFIG_URI, uri);
+				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID, clientId);
+				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET, clientSecret);
+				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI, accessTokenUri);
+				System.out.println(
+						"println: Setting spring.cloud.config.client properties from bound service.  Access token uri = "
+								+ accessTokenUri);
+				logger.info("Setting spring.cloud.config.client properties from bound service.");
 
-			MutablePropertySources propertySources = environment.getPropertySources();
-			if (propertySources.contains(
-					CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME)) {
-				propertySources.addAfter(
-						CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME,
-						new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
-			}
-			else {
-				propertySources
-						.addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
+				MutablePropertySources propertySources = environment.getPropertySources();
+				if (propertySources.contains(
+						CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME)) {
+					propertySources.addAfter(
+							CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME,
+							new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
+				}
+				else {
+					propertySources
+							.addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
+				}
 			}
 		}
 		else {
