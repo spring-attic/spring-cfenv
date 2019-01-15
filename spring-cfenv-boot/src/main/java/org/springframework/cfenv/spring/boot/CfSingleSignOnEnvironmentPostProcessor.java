@@ -73,8 +73,7 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 				cfService = cfEnv.findServiceByLabel(PIVOTAL_SSO_LABEL);
 			}
 			catch (Exception e) {
-				System.out.println("println: Skipping execution of CfSingleSignOnEnvironmentPostProcessor.");
-				logger.info("Skipping execution of CfSingleSignOnEnvironmentPostProcessor.  " + e.getMessage());
+				logger.debug("Skipping execution of CfSingleSignOnEnvironmentPostProcessor.  " + e.getMessage());
 				return;
 			}
 			if (cfService != null) {
@@ -92,10 +91,9 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 				properties.put("security.oauth2.resource.tokenInfoUri", authDomain + "/check_token");
 				properties.put("security.oauth2.resource.jwk.key-set-uri", authDomain + "/token_keys");
 
-				System.out
-						.println("println: Setting security.oauth2.client properties from bound service.  Auth domain "
-								+ authDomain);
-				logger.info("Setting security.oauth2.client properties from bound service.");
+				System.out.println(
+						"println: Setting security.oauth2.client properties from bound service " + cfService.getName());
+				logger.info("Setting security.oauth2.client properties from bound service " + cfService.getName());
 
 				MutablePropertySources propertySources = environment.getPropertySources();
 				if (propertySources.contains(
@@ -111,7 +109,6 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 			}
 		}
 		else {
-			System.out.println("println: Not setting security.oauth2.client properties, not in Cloud Foundry Environment");
 			logger.debug("Not setting security.oauth2.client properties, not in Cloud Foundry Environment");
 		}
 	}

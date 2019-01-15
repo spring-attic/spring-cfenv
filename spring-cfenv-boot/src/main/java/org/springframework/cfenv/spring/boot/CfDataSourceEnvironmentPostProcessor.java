@@ -60,13 +60,6 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
-		// System.out.println("Printing stack trace:");
-		// StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-		// for (int i = 1; i < elements.length; i++) {
-		// StackTraceElement s = elements[i];
-		// System.out.println("\tat " + s.getClassName() + "." + s.getMethodName()
-		// + "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
-		// }
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
 			CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
 			CfJdbcService cfJdbcService;
@@ -74,24 +67,20 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 				cfJdbcService = cfEnvJdbc.findJdbcService();
 			}
 			catch (Exception e) {
-				System.out.println("println: Skipping execution of CfDataSourceEnvironmentPostProcessor.");
-				// TODO change to debug or put CfDataSourceEnvironmentPostProcessor in own java artifact?
-				logger.info("Skipping execution of CfDataSourceEnvironmentPostProcessor. " + e.getMessage());
+				logger.debug("Skipping execution of CfDataSourceEnvironmentPostProcessor. " + e.getMessage());
 				return;
 			}
 			Map<String, Object> properties = new LinkedHashMap<>();
 			if (cfJdbcService != null) {
-				System.out.println("println: Setting spring.datasource.url property from bound service.  jdbcUrl = "
-						+ cfJdbcService.getJdbcUrl());
-				logger.info("Setting spring.datasource.url property from bound service.");
+
+				System.out.println("println: Setting spring.datasource.url property from bound service."
+						+ cfJdbcService.getName());
+				logger.info("Setting spring.datasource.url property from bound service " + cfJdbcService.getName());
 
 				properties.put("spring.datasource.url", cfJdbcService.getJdbcUrl());
 				properties.put("spring.datasource.username", cfJdbcService.getJdbcUsername());
 				properties.put("spring.datasource.password", cfJdbcService.getJdbcPassword());
-				properties.put("spring.datasource.driver-class-name", "org.mariadb.jdbc.Driver");
-
-				System.out.println("println: Setting spring.datasource.username = " + cfJdbcService.getJdbcUsername());
-				System.out.println("println: Setting spring.datasource.password = " + cfJdbcService.getJdbcPassword());
+				properties.put("spring.datasource.driver-class-name", cfJdbcService.getDriverClassName());
 
 				MutablePropertySources propertySources = environment.getPropertySources();
 				if (propertySources.contains(
@@ -107,7 +96,6 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 			}
 		}
 		else {
-			System.out.println("println: Not setting spring.datasource.url, not in Cloud Foundry Environment");
 			logger.debug("Not setting spring.datasource.url, not in Cloud Foundry Environment");
 		}
 	}

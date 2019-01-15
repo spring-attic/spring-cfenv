@@ -156,6 +156,10 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 
 		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name1)).isEqualTo(jdbcUrlMysql1);
 		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name2)).isEqualTo(jdbcUrlMysql2);
+
+		CfJdbcService cfJdbcService = cfEnvJdbc.findJdbcService();
+		assertThat(cfJdbcService.getDriverClassName()).isEqualTo("org.mariadb.jdbc.Driver");
+
 	}
 
 	private String getExpectedMysqlJdbcUrl(String hostname, int port, String name, String user,

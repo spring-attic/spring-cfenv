@@ -33,4 +33,6 @@ public interface JdbcUrlCreator {
 
 	String createJdbcUrl(CfService cfService);
 
+	String getDriverClassName();
+
 }

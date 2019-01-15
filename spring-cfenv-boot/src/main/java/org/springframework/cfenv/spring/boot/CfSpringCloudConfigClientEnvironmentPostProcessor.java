@@ -78,8 +78,7 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 				cfService = cfEnv.findServiceByTag(CONFIG_SERVER_SERVICE_TAG_NAME);
 			}
 			catch (Exception e) {
-				System.out.println("println: Skipping execution of CfDataSourceEnvironmentPostProcessor.");
-				logger.info("Skipping execution of CfDataSourceEnvironmentPostProcessor.  " + e.getMessage());
+				logger.debug("Skipping execution of CfDataSourceEnvironmentPostProcessor.  " + e.getMessage());
 				return;
 			}
 
@@ -94,10 +93,10 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID, clientId);
 				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET, clientSecret);
 				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI, accessTokenUri);
-				System.out.println(
-						"println: Setting spring.cloud.config.client properties from bound service.  Access token uri = "
-								+ accessTokenUri);
-				logger.info("Setting spring.cloud.config.client properties from bound service.");
+
+				System.out.println("println: Setting spring.cloud.config.client properties from bound service "
+						+ cfService.getName());
+				logger.info("Setting spring.cloud.config.client properties from bound service " + cfService.getName());
 
 				MutablePropertySources propertySources = environment.getPropertySources();
 				if (propertySources.contains(
@@ -113,7 +112,6 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 			}
 		}
 		else {
-			System.out.println("println: Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
 			logger.debug("Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
 		}
 	}

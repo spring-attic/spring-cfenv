@@ -43,7 +43,10 @@ public class MySqlJdbcUrlCreator extends AbstractJdbcUrlCreator {
 		return false;
 	}
 
-
+	@Override
+	public String getDriverClassName() {
+		return "org.mariadb.jdbc.Driver";
+	}
 
 	@Override
 	public String createJdbcUrl(CfService cfService) {

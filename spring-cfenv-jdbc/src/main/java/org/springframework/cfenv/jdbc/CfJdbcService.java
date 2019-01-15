@@ -39,4 +39,8 @@ public class CfJdbcService extends CfService {
 	public String getJdbcPassword() {
 		return getCredentials().getPassword();
 	}
+
+	public Object getDriverClassName() {
+		return getCredentials().getDerivedCredentials().get("driver-class-name");
+	}
 }
