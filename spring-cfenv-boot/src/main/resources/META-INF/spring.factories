@@ -3,3 +3,9 @@ org.springframework.boot.env.EnvironmentPostProcessor=\
   org.springframework.cfenv.spring.boot.CfDataSourceEnvironmentPostProcessor,\
   org.springframework.cfenv.spring.boot.CfSpringCloudConfigClientEnvironmentPostProcessor,\
   org.springframework.cfenv.spring.boot.CfSingleSignOnEnvironmentPostProcessor
+
+# Also register as a ApplicationListener to log what occured in the post processing step
+org.springframework.context.ApplicationListener=\
+  org.springframework.cfenv.spring.boot.CfDataSourceEnvironmentPostProcessor,\
+  org.springframework.cfenv.spring.boot.CfSpringCloudConfigClientEnvironmentPostProcessor,\
+  org.springframework.cfenv.spring.boot.CfSingleSignOnEnvironmentPostProcessor

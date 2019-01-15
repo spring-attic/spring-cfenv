@@ -52,7 +52,9 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 
 	private static final String CONFIG_SERVER_SERVICE_TAG_NAME = "configuration";
 
-	private DeferredLog logger = new DeferredLog();
+	private static DeferredLog DEFERRED_LOG = new DeferredLog();
+
+	private static int invocationCount;
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private int order = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
@@ -68,17 +70,17 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-
+		increaseInvocationCount();
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
-
 			CfEnv cfEnv = CfEnvSingleton.getCfEnvInstance();
 			CfService cfService;
-			Map<String, Object> properties = new LinkedHashMap<>();
 			try {
 				cfService = cfEnv.findServiceByTag(CONFIG_SERVER_SERVICE_TAG_NAME);
 			}
 			catch (Exception e) {
-				logger.debug("Skipping execution of CfDataSourceEnvironmentPostProcessor.  " + e.getMessage());
+				if (invocationCount == 1) {
+					DEFERRED_LOG.debug("Skipping execution of CfDataSourceEnvironmentPostProcessor.  " + e.getMessage());
+				}
 				return;
 			}
 
@@ -89,14 +91,11 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 				String clientSecret = cfCredentials.getString("client_secret");
 				String accessTokenUri = cfCredentials.getString("access_token_uri");
 
+				Map<String, Object> properties = new LinkedHashMap<>();
 				properties.put(SPRING_CLOUD_CONFIG_URI, uri);
 				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_ID, clientId);
 				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_CLIENT_SECRET, clientSecret);
 				properties.put(SPRING_CLOUD_CONFIG_OAUTH2_CLIENT_ACCESS_TOKEN_URI, accessTokenUri);
-
-				System.out.println("println: Setting spring.cloud.config.client properties from bound service "
-						+ cfService.getName());
-				logger.info("Setting spring.cloud.config.client properties from bound service " + cfService.getName());
 
 				MutablePropertySources propertySources = environment.getPropertySources();
 				if (propertySources.contains(
@@ -109,17 +108,34 @@ public class CfSpringCloudConfigClientEnvironmentPostProcessor implements Enviro
 					propertySources
 							.addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
 				}
+
+				if (invocationCount == 1) {
+					DEFERRED_LOG.info("Setting spring.cloud.config.client properties from bound service ["
+							+ cfService.getName() + "]");
+				}
 			}
 		}
 		else {
-			logger.debug("Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
+			if (invocationCount == 1) {
+				DEFERRED_LOG.debug("Not setting spring.cloud.config.client properties, not in Cloud Foundry Environment");
+			}
 		}
 	}
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ApplicationPreparedEvent) {
-			this.logger.switchTo(CfSpringCloudConfigClientEnvironmentPostProcessor.class);
+			this.DEFERRED_LOG.switchTo(CfSpringCloudConfigClientEnvironmentPostProcessor.class);
+		}
+	}
+
+
+	/**
+	 * EnvironmentPostProcessors can end up getting called twice due to spring-cloud-commons functionality
+	 */
+	private void increaseInvocationCount() {
+		synchronized (this) {
+			invocationCount++;
 		}
 	}
 

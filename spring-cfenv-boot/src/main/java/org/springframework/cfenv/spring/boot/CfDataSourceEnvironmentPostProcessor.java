@@ -33,16 +33,16 @@ import org.springframework.core.env.CommandLinePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Mark Pollack
  */
-@Component
 public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
 		ApplicationListener<ApplicationEvent> {
 
-	private DeferredLog logger = new DeferredLog();
+	private static DeferredLog DEFERRED_LOG = new DeferredLog();
+
+	private static int invocationCount;
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private int order = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
@@ -60,6 +60,7 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
+		increaseInvocationCount();
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
 			CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
 			CfJdbcService cfJdbcService;
@@ -67,16 +68,13 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 				cfJdbcService = cfEnvJdbc.findJdbcService();
 			}
 			catch (Exception e) {
-				logger.debug("Skipping execution of CfDataSourceEnvironmentPostProcessor. " + e.getMessage());
+				if (invocationCount == 1) {
+					DEFERRED_LOG.debug("Skipping execution of CfDataSourceEnvironmentPostProcessor. " + e.getMessage());
+				}
 				return;
 			}
-			Map<String, Object> properties = new LinkedHashMap<>();
 			if (cfJdbcService != null) {
-
-				System.out.println("println: Setting spring.datasource.url property from bound service."
-						+ cfJdbcService.getName());
-				logger.info("Setting spring.datasource.url property from bound service " + cfJdbcService.getName());
-
+				Map<String, Object> properties = new LinkedHashMap<>();
 				properties.put("spring.datasource.url", cfJdbcService.getJdbcUrl());
 				properties.put("spring.datasource.username", cfJdbcService.getJdbcUsername());
 				properties.put("spring.datasource.password", cfJdbcService.getJdbcPassword());
@@ -93,20 +91,31 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 					propertySources
 							.addFirst(new MapPropertySource("cfenvjdbc", properties));
 				}
+				if (invocationCount == 1) {
+					DEFERRED_LOG.info("Setting spring.datasource.url property from bound service ["
+							+ cfJdbcService.getName() + "]");
+				}
 			}
 		}
 		else {
-			logger.debug("Not setting spring.datasource.url, not in Cloud Foundry Environment");
+			DEFERRED_LOG.debug("Not setting spring.datasource.url, not in Cloud Foundry Environment");
 		}
 	}
-
-
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ApplicationPreparedEvent) {
-			this.logger.switchTo(CfDataSourceEnvironmentPostProcessor.class);
+			this.DEFERRED_LOG.switchTo(CfDataSourceEnvironmentPostProcessor.class);
 		}
 
+	}
+
+	/**
+	 * EnvironmentPostProcessors can end up getting called twice due to spring-cloud-commons functionality
+	 */
+	private void increaseInvocationCount() {
+		synchronized (this) {
+			invocationCount++;
+		}
 	}
 }

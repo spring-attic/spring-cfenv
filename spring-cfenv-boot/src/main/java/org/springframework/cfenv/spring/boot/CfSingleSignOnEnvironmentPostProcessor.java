@@ -34,12 +34,10 @@ import org.springframework.core.env.CommandLinePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Mark Pollack
  */
-@Component
 public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered,
 		ApplicationListener<ApplicationEvent> {
 
@@ -47,7 +45,9 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 
 	private static final String PROPERTY_SOURCE_NAME = "cfSingleSignOnEnvironmentPostProcessor";
 
-	private DeferredLog logger = new DeferredLog();
+	private static DeferredLog DEFERRED_LOG = new DeferredLog();
+
+	private static int invocationCount;
 
 	// Before ConfigFileApplicationListener so values there can use these ones
 	private int order = ConfigFileApplicationListener.DEFAULT_ORDER - 1;
@@ -63,25 +63,27 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-
+		increaseInvocationCount();
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
-
 			CfEnv cfEnv = CfEnvSingleton.getCfEnvInstance();
 			CfService cfService;
-			Map<String, Object> properties = new LinkedHashMap<>();
 			try {
 				cfService = cfEnv.findServiceByLabel(PIVOTAL_SSO_LABEL);
 			}
 			catch (Exception e) {
-				logger.debug("Skipping execution of CfSingleSignOnEnvironmentPostProcessor.  " + e.getMessage());
+				if (invocationCount == 1) {
+					DEFERRED_LOG.debug("Skipping execution of CfSingleSignOnEnvironmentPostProcessor.  " + e.getMessage());
+				}
 				return;
 			}
+
 			if (cfService != null) {
 				CfCredentials cfCredentials = cfService.getCredentials();
 				String clientId = cfCredentials.getString("client_id");
 				String clientSecret = cfCredentials.getString("client_secret");
 				String authDomain = cfCredentials.getString("auth_domain");
 
+				Map<String, Object> properties = new LinkedHashMap<>();
 				properties.put("security.oauth2.client.clientId", clientId);
 				properties.put("security.oauth2.client.clientSecret", clientSecret);
 				properties.put("security.oauth2.client.accessTokenUri", authDomain + "/oauth/token");
@@ -90,10 +92,6 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 				properties.put("security.oauth2.resource.userInfoUri", authDomain + "/userinfo");
 				properties.put("security.oauth2.resource.tokenInfoUri", authDomain + "/check_token");
 				properties.put("security.oauth2.resource.jwk.key-set-uri", authDomain + "/token_keys");
-
-				System.out.println(
-						"println: Setting security.oauth2.client properties from bound service " + cfService.getName());
-				logger.info("Setting security.oauth2.client properties from bound service " + cfService.getName());
 
 				MutablePropertySources propertySources = environment.getPropertySources();
 				if (propertySources.contains(
@@ -106,17 +104,33 @@ public class CfSingleSignOnEnvironmentPostProcessor implements EnvironmentPostPr
 					propertySources
 							.addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
 				}
+
+				if (invocationCount == 1) {
+					DEFERRED_LOG.info("Setting security.oauth2.client properties from bound service ["
+							+ cfService.getName() + "]");
+				}
 			}
 		}
 		else {
-			logger.debug("Not setting security.oauth2.client properties, not in Cloud Foundry Environment");
+			if (invocationCount == 1) {
+				DEFERRED_LOG.debug("Not setting security.oauth2.client properties, not in Cloud Foundry Environment");
+			}
 		}
 	}
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ApplicationPreparedEvent) {
-			this.logger.switchTo(CfSingleSignOnEnvironmentPostProcessor.class);
+			this.DEFERRED_LOG.switchTo(CfSingleSignOnEnvironmentPostProcessor.class);
+		}
+	}
+
+	/**
+	 * EnvironmentPostProcessors can end up getting called twice due to spring-cloud-commons functionality
+	 */
+	private void increaseInvocationCount() {
+		synchronized (this) {
+			invocationCount++;
 		}
 	}
 
