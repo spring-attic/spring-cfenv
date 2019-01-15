@@ -15,11 +15,14 @@
  */
 package org.springframework.cfenv.jdbc;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import org.springframework.cfenv.core.UriInfo;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.cfenv.jdbc.MySqlJdbcUrlCreator.MYSQL_SCHEME;
 
 /**
@@ -37,9 +40,18 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 				getMysqlServicePayload("mysql-1", hostname, port, username, password, name1),
 				getMysqlServicePayload("mysql-2", hostname, port, username, password, name2)));
 
-		assertJdbcUrls(name1, name2);
+		assertJdbcServiceValues(name1, name2);
 
+		CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
+		CfJdbcService cfJdbcService = cfJdbcEnv.findJdbcServiceByName("mysql-1");
+		assertThat(cfJdbcService.getUsername()).isEqualTo(username);
+		assertThat(cfJdbcService.getPassword()).isEqualTo(password);
+		assertThat(cfJdbcService.getDriverClassName()).isEqualTo("org.mariadb.jdbc.Driver");
 
+		assertThatThrownBy(() -> {
+			cfJdbcEnv.findJdbcServiceByName("mysql.*");
+		}).isInstanceOf(IllegalArgumentException.class).hasMessage(
+				"No unique database service matching by name [mysql.*] was found.  Matching service names are [mysql-1, mysql-2]");
 	}
 
 	@Test
@@ -50,7 +62,7 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithLabelNoTags("mysql-1", hostname, port, username, password, name1),
 						getMysqlServicePayloadWithLabelNoTags("mysql-2", hostname, port, username, password, name2)));
 
-		assertJdbcUrls(name1, name2);
+		assertJdbcServiceValues(name1, name2);
 
 	}
 
@@ -62,7 +74,7 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadNoLabelNoTags("mysql-1", hostname, port, username, password, name1),
 						getMysqlServicePayloadNoLabelNoTags("mysql-2", hostname, port, username, password, name2)));
 
-		assertJdbcUrls(name1, name2);
+		assertJdbcServiceValues(name1, name2);
 
 	}
 
@@ -76,8 +88,9 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadNoLabelNoTags("mysql", hostname, port, userWithSpecialChars,
 								passwordWithSpecialChars, name)));
 
-		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
-		String jdbcUrlMysql = cfEnvJdbc.findJdbcUrlByName("mysql");
+		CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
+		CfJdbcService cfJdbcService = cfJdbcEnv.findJdbcServiceByName("mysql");
+		String jdbcUrlMysql = cfJdbcService.getUrl();
 
 		assertThat(getExpectedMysqlJdbcUrl(hostname, port, name, userWithSpecialChars, passwordWithSpecialChars))
 				.isEqualTo(jdbcUrlMysql);
@@ -91,7 +104,7 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithLabelNoUri("mysql-1", hostname, port, username, password, name1),
 						getMysqlServicePayloadWithLabelNoUri("mysql-2", hostname, port, username, password, name2)));
 
-		assertJdbcUrls(name1, name2);
+		assertJdbcServiceValues(name1, name2);
 	}
 
 	@Test
@@ -102,7 +115,7 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithJdbcUrl("mysql-1", hostname, port, username, password, name1),
 						getMysqlServicePayloadWithJdbcUrl("mysql-2", hostname, port, username, password, name2)));
 
-		assertJdbcUrls(name1, name2);
+		assertJdbcServiceValues(name1, name2);
 	}
 
 	@Test
@@ -114,8 +127,9 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithJdbcUrl("mysql", hostname, port, userWithSpecialChars,
 								passwordWithSpecialChars, name)));
 
-		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
-		String jdbcUrlMysql = cfEnvJdbc.findJdbcUrlByName("mysql");
+		CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
+		CfJdbcService cfJdbcService = cfJdbcEnv.findJdbcServiceByName("mysql");
+		String jdbcUrlMysql = cfJdbcService.getUrl();
 
 		assertThat(getExpectedMysqlJdbcUrl(hostname, port, name, userWithSpecialChars, passwordWithSpecialChars))
 				.isEqualTo(jdbcUrlMysql);
@@ -129,7 +143,13 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithJdbcUrlOnly("mysql-1", hostname, port, username, password, name1),
 						getMysqlServicePayloadWithJdbcUrlOnly("mysql-2", hostname, port, username, password, name2)));
 
-		assertJdbcUrls(name1, name2);
+		assertJdbcServiceValues(name1, name2);
+
+		CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
+		CfJdbcService cfJdbcService = cfJdbcEnv.findJdbcServiceByName("mysql-1");
+		assertThat(cfJdbcService.getUsername()).isNull();
+		assertThat(cfJdbcService.getPassword()).isNull();
+		assertThat(cfJdbcService.getDriverClassName()).isEqualTo("org.mariadb.jdbc.Driver");
 	}
 
 	@Test
@@ -141,24 +161,41 @@ public class MySqlJdbcTests extends AbstractJdbcTests {
 						getMysqlServicePayloadWithJdbcUrlOnly("mysql", hostname, port, userWithSpecialChars,
 								passwordWithSpecialChars, name)));
 
-		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
-		String jdbcUrlMysql = cfEnvJdbc.findJdbcUrlByName("mysql");
+		CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
+		CfJdbcService cfJdbcService = cfJdbcEnv.findJdbcServiceByName("mysql");
+		String jdbcUrlMysql = cfJdbcService.getUrl();
 		assertThat(getExpectedMysqlJdbcUrl(hostname, port, name, userWithSpecialChars, passwordWithSpecialChars))
 				.isEqualTo(jdbcUrlMysql);
 	}
 
 	// Utility methods
 
-	private void assertJdbcUrls(String name1, String name2) {
-		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
-		String jdbcUrlMysql1 = cfEnvJdbc.findJdbcUrlByName("mysql-1");
-		String jdbcUrlMysql2 = cfEnvJdbc.findJdbcUrlByName("mysql-2");
+	private void assertJdbcServiceValues(String name1, String name2) {
+		CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
+		String jdbcUrlMysql1 = cfJdbcEnv.findJdbcServiceByName("mysql-1").getUrl();
+		String jdbcUrlMysql2 = cfJdbcEnv.findJdbcServiceByName("mysql-2").getUrl();
 
 		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name1)).isEqualTo(jdbcUrlMysql1);
 		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name2)).isEqualTo(jdbcUrlMysql2);
 
-		CfJdbcService cfJdbcService = cfEnvJdbc.findJdbcService();
+		CfJdbcService cfJdbcService1 = cfJdbcEnv.findJdbcServiceByName("mysql-1");
+		CfJdbcService cfJdbcService2 = cfJdbcEnv.findJdbcServiceByName("mysql-2");
+		jdbcUrlMysql1 = cfJdbcService1.getUrl();
+		jdbcUrlMysql2 = cfJdbcService2.getUrl();
+		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name1)).isEqualTo(jdbcUrlMysql1);
+		assertThat(getExpectedJdbcUrl(MYSQL_SCHEME, name2)).isEqualTo(jdbcUrlMysql2);
+
+		List<CfJdbcService> cfJdbcServices = cfJdbcEnv.findJdbcServices();
+		assertThat(cfJdbcServices.size()).isEqualTo(2);
+
+		assertThatThrownBy(() -> {
+			cfJdbcEnv.findJdbcService().getUrl();
+		}).isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("No unique database service found. Found database service names [mysql-1, mysql-2]");
+
+		CfJdbcService cfJdbcService = cfJdbcEnv.findJdbcServiceByName("mysql-1");
 		assertThat(cfJdbcService.getDriverClassName()).isEqualTo("org.mariadb.jdbc.Driver");
+
 
 	}
 

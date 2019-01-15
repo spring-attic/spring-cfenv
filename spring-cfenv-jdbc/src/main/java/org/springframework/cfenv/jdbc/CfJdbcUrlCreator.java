@@ -26,33 +26,17 @@ import org.springframework.cfenv.core.CfService;
  */
 public class CfJdbcUrlCreator {
 
-	private List<CfService> cfServices;
-
-	private List<JdbcUrlCreator> jdbcUrlCreators;
+	private List<CfJdbcService> cfJdbcServices;
 
 	public CfJdbcUrlCreator(List<CfService> cfServices) {
-		this.cfServices = cfServices;
-		jdbcUrlCreators = new ArrayList<>();
+		List<JdbcUrlCreator> jdbcUrlCreators = new ArrayList<>();
 		Iterable<JdbcUrlCreator> jdbcUrlCreatorIterable = ServiceLoader.load(JdbcUrlCreator.class);
 		for (JdbcUrlCreator jdbcUrlCreator : jdbcUrlCreatorIterable) {
 			if (jdbcUrlCreator != null) {
 				jdbcUrlCreators.add(jdbcUrlCreator);
 			}
 		}
-	}
-
-	public String getJdbcUrl() {
-		for (CfService cfService : cfServices) {
-			for (JdbcUrlCreator jdbcUrlCreator : jdbcUrlCreators) {
-				if (jdbcUrlCreator.isDatabaseService(cfService)) {
-					return jdbcUrlCreator.createJdbcUrl(cfService);
-				}
-			}
-		}
-		return null;
-	}
-
-	public CfJdbcService getJdbcService() {
+		this.cfJdbcServices = new ArrayList<>();
 		for (CfService cfService : cfServices) {
 			for (JdbcUrlCreator jdbcUrlCreator : jdbcUrlCreators) {
 				if (jdbcUrlCreator.isDatabaseService(cfService)) {
@@ -60,11 +44,62 @@ public class CfJdbcUrlCreator {
 					String jdbcUrl = jdbcUrlCreator.createJdbcUrl(cfService);
 					cfJdbcService.getCredentials().getDerivedCredentials().put("driver-class-name", jdbcUrlCreator.getDriverClassName());
 					cfJdbcService.getCredentials().getDerivedCredentials().put("jdbcUrl", jdbcUrl);
-					return cfJdbcService;
+					this.cfJdbcServices.add(cfJdbcService);
 				}
 			}
 		}
+	}
+
+	public List<CfJdbcService> findJdbcServices() {
+		return this.cfJdbcServices;
+	}
+
+	public CfJdbcService findJdbcServiceByName(String... spec) {
+		List<CfJdbcService> matchingJdbcServices = new ArrayList<>();
+		for (CfJdbcService cfJdbcService : this.cfJdbcServices) {
+			if (spec != null) {
+				for (String regex : spec) {
+					String name = cfJdbcService.getName();
+					if (name != null && name.length() > 0) {
+						if (name.matches(regex)) {
+							matchingJdbcServices.add(cfJdbcService);
+						}
+					}
+				}
+			}
+		}
+		if (matchingJdbcServices.size() == 1) {
+			return matchingJdbcServices.stream().findFirst().get();
+		}
+		String specMessage = (spec == null) ? "null" : String.join(", ", spec);
+		throwExceptionIfMultipleMatchesByName(matchingJdbcServices, specMessage, "name");
+		throw new IllegalArgumentException("No service with name [" + specMessage + "] was found.");
+	}
+
+	public CfJdbcService findJdbcService() {
+		if (this.cfJdbcServices.size() == 1) {
+			return this.cfJdbcServices.stream().findFirst().get();
+		}
+		throwExceptionIfMultipleMatches(this.cfJdbcServices);
 		return null;
+	}
+
+	private void throwExceptionIfMultipleMatches(List<CfJdbcService> services) {
+		if (services.size() > 1) {
+			String[] names = services.stream().map(CfJdbcService::getName).toArray(String[]::new);
+			throw new IllegalArgumentException("No unique database service found. Found database service names [" +
+					String.join(", ", names) + "]");
+		}
+	}
+
+	private void throwExceptionIfMultipleMatchesByName(List<CfJdbcService> services, String specMessage,
+			String operation) {
+		if (services.size() > 1) {
+			String[] names = services.stream().map(CfJdbcService::getName).toArray(String[]::new);
+			throw new IllegalArgumentException(
+					"No unique database service matching by " + operation + " [" + specMessage +
+							"] was found.  Matching service names are [" + String.join(", ", names) + "]");
+		}
 	}
 
 }

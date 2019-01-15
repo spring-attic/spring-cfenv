@@ -15,31 +15,33 @@
  */
 package org.springframework.cfenv.jdbc;
 
+import java.util.List;
+
 import org.springframework.cfenv.core.CfEnv;
 
 /**
  * Subclass that adds methods specifc for easy access to JDBC related credentails.
  * @author Mark Pollack
  */
-public class CfEnvJdbc extends CfEnv {
+public class CfJdbcEnv extends CfEnv {
 
-	public CfEnvJdbc() {
+	public CfJdbcEnv() {
 		super();
 	}
 
-	public String findJdbcUrl() {
-		// TODO detect if more than one db service is bound and throw exception
+	public List<CfJdbcService> findJdbcServices() {
 		CfJdbcUrlCreator cfJdbcUrlCreator = new CfJdbcUrlCreator(this.findAllServices());
-		return cfJdbcUrlCreator.getJdbcUrl();
+		return cfJdbcUrlCreator.findJdbcServices();
 	}
 
-	public String findJdbcUrlByName(String... spec) {
+	public CfJdbcService findJdbcServiceByName(String... spec) {
 		CfJdbcUrlCreator cfJdbcUrlCreator = new CfJdbcUrlCreator(this.findServicesByName(spec));
-		return cfJdbcUrlCreator.getJdbcUrl();
+		return cfJdbcUrlCreator.findJdbcServiceByName(spec);
 	}
 
 	public CfJdbcService findJdbcService() {
 		CfJdbcUrlCreator cfJdbcUrlCreator = new CfJdbcUrlCreator(this.findAllServices());
-		return cfJdbcUrlCreator.getJdbcService();
+		return cfJdbcUrlCreator.findJdbcService();
 	}
+
 }

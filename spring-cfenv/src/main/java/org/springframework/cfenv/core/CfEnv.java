@@ -94,9 +94,8 @@ public class CfEnv {
 	private void throwExceptionIfMultipleMatches(List<CfService> cfServices, String specMessage, String operation) {
 		if (cfServices.size() > 1) {
 			String[] names = cfServices.stream().map(CfService::getName).toArray(String[]::new);
-			String n = names.length > 1 ? "service names are [" : "service name is [";
-			throw new IllegalStateException("No unique service matching by " + operation  + " [" + specMessage  +
-					"] was found.  Matching " + n + String.join(", ", names) + "]");
+			throw new IllegalArgumentException("No unique service matching by " + operation  + " [" + specMessage  +
+					"] was found.  Matching service names are [" + String.join(", ", names) + "]");
 		}
 	}
 

@@ -24,7 +24,7 @@ import org.springframework.boot.context.config.ConfigFileApplicationListener;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLog;
-import org.springframework.cfenv.jdbc.CfEnvJdbc;
+import org.springframework.cfenv.jdbc.CfJdbcEnv;
 import org.springframework.cfenv.jdbc.CfJdbcService;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -62,10 +62,10 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 			SpringApplication application) {
 		increaseInvocationCount();
 		if (CloudPlatform.CLOUD_FOUNDRY.isActive(environment)) {
-			CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
+			CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
 			CfJdbcService cfJdbcService;
 			try {
-				cfJdbcService = cfEnvJdbc.findJdbcService();
+				cfJdbcService = cfJdbcEnv.findJdbcService();
 			}
 			catch (Exception e) {
 				if (invocationCount == 1) {
@@ -75,9 +75,9 @@ public class CfDataSourceEnvironmentPostProcessor implements EnvironmentPostProc
 			}
 			if (cfJdbcService != null) {
 				Map<String, Object> properties = new LinkedHashMap<>();
-				properties.put("spring.datasource.url", cfJdbcService.getJdbcUrl());
-				properties.put("spring.datasource.username", cfJdbcService.getJdbcUsername());
-				properties.put("spring.datasource.password", cfJdbcService.getJdbcPassword());
+				properties.put("spring.datasource.url", cfJdbcService.getUrl());
+				properties.put("spring.datasource.username", cfJdbcService.getUsername());
+				properties.put("spring.datasource.password", cfJdbcService.getPassword());
 				properties.put("spring.datasource.driver-class-name", cfJdbcService.getDriverClassName());
 
 				MutablePropertySources propertySources = environment.getPropertySources();

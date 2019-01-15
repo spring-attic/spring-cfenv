@@ -327,17 +327,17 @@ public class CfEnvTests {
 
 		assertThatThrownBy(() -> {
 			CfService service = cfEnv.findServiceByName("mysql.*");
-		}).isInstanceOf(IllegalStateException.class).hasMessageContaining(
+		}).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
 				"No unique service matching by name [mysql.*] was found.  Matching service names are [mysql, mysql2]");
 
 		assertThatThrownBy(() -> {
 			CfService service = cfEnv.findServiceByLabel("p-mysql");
-		}).isInstanceOf(IllegalStateException.class).hasMessageContaining(
+		}).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
 				"No unique service matching by label [p-mysql] was found.  Matching service names are [mysql, mysql2]");
 
 		assertThatThrownBy(() -> {
 			CfService service = cfEnv.findServiceByTag("mysql");
-		}).isInstanceOf(IllegalStateException.class).hasMessageContaining(
+		}).isInstanceOf(IllegalArgumentException.class).hasMessageContaining(
 				"No unique service matching by tag [mysql] was found.  Matching service names are [mysql, mysql2]");
 
 	}

@@ -26,24 +26,33 @@ import org.junit.Test;
 import org.springframework.util.ResourceUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * @author Mark Pollack
  */
-public class CfEnvJdbcTests {
+public class CfJdbcEnvTests {
 
 	private static final String mysqlJdbcUrl = "jdbc:mysql://10.0.4.35:3306/cf_2e23d10a_8738_8c3c_66cf_13e44422698c?user=mysql_username&password=mysql_password";
 
 	@Test
 	public void testCfService() {
 		mockVcapServices("vcap-services-jdbc.json");
-		CfEnvJdbc cfEnvJdbc = new CfEnvJdbc();
-		assertThat(cfEnvJdbc.findJdbcUrl()).isEqualTo(mysqlJdbcUrl);
-		assertThat(cfEnvJdbc.findJdbcUrlByName("mysql")).isEqualTo(mysqlJdbcUrl);
-		assertThat(cfEnvJdbc.findJdbcUrlByName("blah")).isNull();
-		assertThat(cfEnvJdbc.findJdbcUrlByName((String[]) null)).isNull();
-		CfJdbcService cfJdbcService = cfEnvJdbc.findJdbcService();
-		assertThat(cfJdbcService.getJdbcUrl()).isEqualTo(mysqlJdbcUrl);
+		CfJdbcEnv cfJdbcEnv = new CfJdbcEnv();
+		assertThat(cfJdbcEnv.findJdbcService().getUrl()).isEqualTo(mysqlJdbcUrl);
+		assertThat(cfJdbcEnv.findJdbcServiceByName("mysql").getUrl()).isEqualTo(mysqlJdbcUrl);
+
+		assertThatThrownBy(() -> {
+			cfJdbcEnv.findJdbcServiceByName("blah").getUrl();
+		}).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("No service with name [blah] was found.");
+
+		assertThatThrownBy(() -> {
+			cfJdbcEnv.findJdbcServiceByName((String[]) null).getUrl();
+		}).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("No service with name [null]");
+
+		CfJdbcService cfJdbcService = cfJdbcEnv.findJdbcService();
+		assertThat(cfJdbcService.getUrl()).isEqualTo(mysqlJdbcUrl);
 	}
 
 	private void mockVcapServices(String fileName) {

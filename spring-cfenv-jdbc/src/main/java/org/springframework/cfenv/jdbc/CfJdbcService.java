@@ -28,15 +28,15 @@ public class CfJdbcService extends CfService {
 		super(serviceData);
 	}
 
-	public String getJdbcUrl() {
+	public String getUrl() {
 		return getCredentials().getDerivedCredentials().get("jdbcUrl");
 	}
 
-	public String getJdbcUsername() {
+	public String getUsername() {
 		return getCredentials().getUsername();
 	}
 
-	public String getJdbcPassword() {
+	public String getPassword() {
 		return getCredentials().getPassword();
 	}
 
