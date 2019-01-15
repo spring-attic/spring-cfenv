@@ -37,7 +37,7 @@ public class CfEnv {
 
 	private List<CfService> cfServices = new ArrayList<>();
 
-	//TODO consider JVM singleon access to avoid excessive creation when using spring boot EnvironmentPostProcessors
+	private CfApplication cfApplication;
 
 	public CfEnv() {
 		try {
@@ -58,6 +58,21 @@ public class CfEnv {
 		catch (Exception e) {
 			throw new IllegalStateException("Could not access/parse " + VCAP_SERVICES + " environment variable.", e);
 		}
+		try {
+			String vcapApplicationJson = System.getenv(VCAP_APPLICATION);
+			if (vcapApplicationJson != null && vcapApplicationJson.length() > 0) {
+				Map<String, Object> applicationData = objectMapper.readValue(vcapApplicationJson, Map.class);
+				this.cfApplication = new CfApplication(applicationData);
+			}
+		}
+		catch (Exception e) {
+			// throw new IllegalStateException("Could not access/parse " + VCAP_APPLICATION + "
+			// environment variable.", e);
+		}
+	}
+
+	public CfApplication getApp() {
+		return this.cfApplication;
 	}
 
 	public List<CfService> findAllServices() {

@@ -36,8 +36,26 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class CfEnvTests {
 
 	@Test
+	public void b() {
+		mockVcapEnvVars();
+		CfEnv cfEnv = new CfEnv();
+		CfApplication cfApplication = cfEnv.getApp();
+		assertThat(cfApplication.getInstanceId()).isEqualTo("fe98dc76ba549876543210abcd1234");
+		assertThat(cfApplication.getInstanceIndex()).isEqualTo(0);
+		assertThat(cfApplication.getHost()).isEqualTo("0.0.0.0");
+		assertThat(cfApplication.getPort()).isEqualTo(61857);
+		assertThat(cfApplication.getApplicationVersion()).isEqualTo("ab12cd34-5678-abcd-0123-abcdef987654");
+		assertThat(cfApplication.getApplicationName()).isEqualTo("styx-james");
+		assertThat(cfApplication.getApplicationUris()).contains("my-app.example.com");
+		assertThat(cfApplication.getVersion()).isEqualTo("ab12cd34-5678-abcd-0123-abcdef987654");
+		assertThat(cfApplication.getName()).isEqualTo("my-app");
+		assertThat(cfApplication.getUris()).contains("my-app.example.com");
+
+	}
+
+	@Test
 	public void testCfService() {
-		mockVcapServices();
+		mockVcapEnvVars();
 		CfEnv cfEnv = new CfEnv();
 
 		List<CfService> cfServices = cfEnv.findAllServices();
@@ -128,7 +146,7 @@ public class CfEnvTests {
 
 	@Test
 	public void testFindServiceByName() {
-		mockVcapServices();
+		mockVcapEnvVars();
 		CfEnv cfEnv = new CfEnv();
 
 		CfService cfService = cfEnv.findServiceByName("redis");
@@ -161,7 +179,7 @@ public class CfEnvTests {
 
 	@Test
 	public void testFindServiceByLabel() {
-		mockVcapServices();
+		mockVcapEnvVars();
 		CfEnv cfEnv = new CfEnv();
 
 		CfService cfService = cfEnv.findServiceByLabel("p-redis");
@@ -196,7 +214,7 @@ public class CfEnvTests {
 
 	@Test
 	public void testFindServiceByTag() {
-		mockVcapServices();
+		mockVcapEnvVars();
 		CfEnv cfEnv = new CfEnv();
 
 		CfService cfService = cfEnv.findServiceByTag("redis");
@@ -228,7 +246,7 @@ public class CfEnvTests {
 
 	@Test
 	public void testFindCredentialsByName() {
-		mockVcapServices();
+		mockVcapEnvVars();
 		CfEnv cfEnv = new CfEnv();
 
 		CfCredentials cfCredentials = cfEnv.findCredentialsByName("mysql");
@@ -259,7 +277,7 @@ public class CfEnvTests {
 
 	@Test
 	public void testFindCredentialsByLabel() {
-		mockVcapServices();
+		mockVcapEnvVars();
 		CfEnv cfEnv = new CfEnv();
 
 		CfCredentials cfCredentials = cfEnv.findCredentialsByLabel("p-mysql");
@@ -289,7 +307,7 @@ public class CfEnvTests {
 
 	@Test
 	public void testFindCredentialsByTag() {
-		mockVcapServices();
+		mockVcapEnvVars();
 		CfEnv cfEnv = new CfEnv();
 
 		CfCredentials cfCredentials = cfEnv.findCredentialsByTag("mysql");
@@ -320,7 +338,7 @@ public class CfEnvTests {
 
 	@Test
 	public void testMultipleMatchingServices() {
-		mockVcapServices("vcap-services-multiple-mysql.json");
+		mockVcapEnvVars("vcap-services-multiple-mysql.json", "vcap-application.json");
 		CfEnv cfEnv = new CfEnv();
 		List<CfService> services = cfEnv.findAllServices();
 		assertThat(services.size()).isEqualTo(3);
@@ -342,11 +360,20 @@ public class CfEnvTests {
 
 	}
 
-	private void mockVcapServices(String fileName) {
-		String fileContents;
+	private void mockVcapEnvVars(String vcapServicesFilename, String vcapApplicationFilename) {
+		String vcapServicesJson;
 		try {
-			File file = ResourceUtils.getFile("classpath:" + fileName);
-			fileContents = new String(Files.readAllBytes(file.toPath()));
+			File file = ResourceUtils.getFile("classpath:" + vcapServicesFilename);
+			vcapServicesJson = new String(Files.readAllBytes(file.toPath()));
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+
+		String vcapAppJson;
+		try {
+			File file = ResourceUtils.getFile("classpath:" + vcapApplicationFilename);
+			vcapAppJson = new String(Files.readAllBytes(file.toPath()));
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -357,7 +384,10 @@ public class CfEnvTests {
 			@Mock
 			public String getenv(String name) {
 				if (name.equalsIgnoreCase("VCAP_SERVICES")) {
-					return fileContents;
+					return vcapServicesJson;
+				}
+				else if (name.equalsIgnoreCase("VCAP_APPLICATION")) {
+					return vcapAppJson;
 				}
 				return env.get(name);
 			}
@@ -365,8 +395,8 @@ public class CfEnvTests {
 
 	}
 
-	private void mockVcapServices() {
-		mockVcapServices("vcap-services.json");
+	private void mockVcapEnvVars() {
+		mockVcapEnvVars("vcap-services.json", "vcap-application.json");
 	}
 
 }
