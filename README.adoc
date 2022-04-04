@@ -1,3 +1,5 @@
+# spring-cfenv is no longer actively maintained by VMware, Inc.
+
 Spring CFEnv is a library for easily accessing the environment variables set when deploying an application to Cloud Foundry.
 It is modeled after the design of the node library https://github.com/cloudfoundry-community/node-cfenv/[node-cfenv] and other `-cfenv` libraries in the Cloud Foundry ecosystem.
 
